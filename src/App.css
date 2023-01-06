@@ -868,8 +868,8 @@ button:hover {
 
 @media (max-width: 1000px) {
   .modal {
-    padding-left: 25px;
-    padding-right: 25px;
+    /* padding-left: 25px;
+    padding-right: 25px; */
   }
   .slider_custom_options-child {
     font-size: 15px;
@@ -1019,7 +1019,8 @@ button:hover {
   flex-direction: row;
   justify-content: space-between;
   align-items: "center";
-  width: 30%;
+  width: fit-content;
+  max-width: 210px;
 
   background: linear-gradient(
     180deg,
@@ -1033,13 +1034,13 @@ button:hover {
 @media (max-width: 768px) {
   .currency {
     padding: 7px 8px 7px 8px;
-    min-width: 124px;
+    min-width: 126px;
   }
 }
 @media (max-width: 1000px) {
   .currency {
     padding: 7px 8px 7px 8px;
-    min-width: 124px;
+    min-width: 126px;
   }
 }
 
@@ -1078,6 +1079,9 @@ button:hover {
 .currency_name {
   font-size: 24px;
   line-height: 27px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 @media (max-width: 768px) {
   .currency_name {
@@ -1233,6 +1237,12 @@ button:hover {
 
   padding: 17px 17px 17px 17px;
 }
+.popup_heading {
+  font-size: 20px;
+  line-height: 22px;
+  color: #07142d;
+  margin-bottom: 5px;
+}
 
 @media (max-width: 768px) {
   .box1__container {
@@ -1385,7 +1395,7 @@ body.active-modal {
   line-height: 1.4;
   background: #f1f1f1;
   padding: 14px 28px;
-  border-radius: 3px;
+  border-radius: 20px;
   max-width: 600px;
   min-width: 300px;
   display: flex;

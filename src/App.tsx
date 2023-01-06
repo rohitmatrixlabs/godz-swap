@@ -555,6 +555,8 @@ export const App = () => {
           <div onClick={toggleModal} className="overlay"></div>
           <div className="modal-content">
             <div className="wrapper">
+              <div className="font_base popup_heading "> Select a Token</div>
+
               <div className={search_styles}>
                 <div style={{ alignItems: "center", display: "flex" }}>
                   <input
@@ -567,7 +569,12 @@ export const App = () => {
                     <i className="fas fa-search"></i>
                   </div>
                 </div>
-                <div className="autocom-box">{search}</div>
+                <div
+                  className="autocom-box font_base"
+                  style={{ color: "black" }}
+                >
+                  {search}
+                </div>
               </div>
             </div>
             <button
