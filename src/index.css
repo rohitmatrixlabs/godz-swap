@@ -1,0 +1,29 @@
+body {
+  background-image: url("assets/background2.png");
+  background-position: center center;
+  background-repeat: repeat;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: MicroSquare-Ex;
+  font-size: 12px;
+  overflow: hidden;
+  min-width: 314px;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
