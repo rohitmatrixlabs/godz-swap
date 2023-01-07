@@ -1104,10 +1104,26 @@ button:hover {
 .amount {
   font-size: 40px;
   line-height: 45px;
+  background-color: rgba(157, 228, 232, 0.3);
+  border: none;
+  text-align: end;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 300px;
+}
+
+::placeholder {
+  color: white;
+  text-align: end;
+}
+.amount2 {
+  font-size: 40px;
+  line-height: 45px;
 }
 .amount_deduction {
   font-size: 16px;
   line-height: 18px;
+  text-align: end;
 }
 
 .core__details {
@@ -1324,6 +1340,10 @@ button:hover {
     font-size: 24px;
     line-height: 27px;
   }
+  .amount2 {
+    font-size: 24px;
+    line-height: 27px;
+  }
   .converted__amount {
     font-size: 8px;
     line-height: 9px;
@@ -1349,6 +1369,10 @@ button:hover {
     line-height: 13px;
   }
   .amount {
+    font-size: 24px;
+    line-height: 27px;
+  }
+  .amount2 {
     font-size: 24px;
     line-height: 27px;
   }
@@ -1405,7 +1429,6 @@ body.active-modal {
 
 .wrapper {
   max-width: 450px;
-  margin: 10px auto 10px auto;
 }
 
 .wrapper .search-input {
@@ -1494,9 +1517,12 @@ body.active-modal {
   margin: 2px 0;
 }
 
-input {
-  width: 220px;
-}
+/* 
+@media (min-width: 768px) {
+  .input {
+    width: 20%;
+  }
+} */
 
 .search-inner {
   display: flex;

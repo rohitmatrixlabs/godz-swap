@@ -7,8 +7,9 @@ import symbol from "./assets/icon__1.png";
 import arrowDown from "./assets/arrowDown.png";
 import zigZag from "./assets/zig-zag.png";
 import SearchBox from "./components/SearchBox/SearchBox";
+import ClipLoader from "react-spinners/ClipLoader";
 
-import { ethers } from "ethers";
+import { ethers, FixedNumber } from "ethers";
 import {
   BestRouteResponse,
   EvmTransaction,
@@ -17,44 +18,67 @@ import {
   TransactionStatus,
   TransactionStatusResponse,
   WalletRequiredAssets,
+  WalletDetail,
+  SwapFee,
   Token,
 } from "rango-sdk";
+import { Notyf } from "notyf";
 import {
   checkApprovalSync,
   prepareEvmTransaction,
   prettyAmount,
   sleep,
 } from "./utils";
+var chains = require("./chainMap.json");
 
 declare let window: any;
+type WalletAddresses = { blockchain: string; address: string }[];
 
 export const App = () => {
+  const notyf = new Notyf({ duration: 2000 });
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
-
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const [currentChain, setCurrentChain] = useState<any>();
   const rangoClient = useMemo(() => new RangoClient(RANGO_API_KEY), []);
+  const [wallet, setWallet] = useState<WalletDetail>();
   const [tokensMeta, setTokenMeta] = useState<MetaResponse | null>();
-  const [inputAmount, setInputAmount] = useState<string>("0.1");
+  const [inputAmount, setInputAmount] = useState<string>("0.01");
   const [bestRoute, setBestRoute] = useState<BestRouteResponse | null>();
   const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(
     null
   );
+  let t: SwapFee[] = [];
+  let t1: Number[] = [];
+  const [details, setDetails] = useState({
+    fee: t,
+    estimatedTimeInSeconds: t1,
+    swapChainType: "",
+    usdTransfer: 0,
+    convertLeftRate: 0,
+    convertRightRate: 0,
+    availableAmount: 0,
+    totalFee: 0,
+    avgTime: 0,
+    maxTime: 0,
+    minTime: 0,
+    totalTime: 0,
+  });
   const [currId, setCurrId] = useState(1);
+  const [readyToExeccute, setReadyToExecute] = useState<boolean>(false);
   const [requiredAssets, setRequiredAssets] = useState<WalletRequiredAssets[]>(
     []
   );
   const [modal, setModal] = useState(false);
   const [search_value, setSearchValue] = useState<any>();
-  const [currency1, setCurrency1] = useState<any>({
+  const emptyToken = {
     name: "select",
     symbol: "select",
     address: "",
-  });
+    usdPrice: 0,
+  };
+  const [currency1, setCurrency1] = useState<any>(emptyToken);
 
-  const [currency2, setCurrency2] = useState<any>({
-    name: "select",
-    symbol: "select",
-    address: "",
-  });
+  const [currency2, setCurrency2] = useState<any>(emptyToken);
 
   const [loadingMeta, setLoadingMeta] = useState<boolean>(true);
   const [loadingSwap, setLoadingSwap] = useState<boolean>(false);
@@ -63,8 +87,9 @@ export const App = () => {
   const [value, setValue] = useState("");
   const [search_styles, setSearch_style] = useState("search-input");
   const [search, setSearch] = useState<any>();
-  const [currCurrency, setCurrCurrency] = useState<any>();
+  const [currCurrency, setCurrCurrency] = useState<any>({});
   const [loadingCurrency, setLoadingCurrency] = useState<boolean>();
+  const [ConversionRate, setConversionRate] = useState<number>(0);
 
   const onChange = (event: any) => {
     setValue(event.target.value);
@@ -95,6 +120,12 @@ export const App = () => {
   };
 
   useEffect(() => {
+    provider.getNetwork().then((network) => {
+      var temp = chains[network.chainId];
+      setCurrentChain(temp);
+    });
+  }, []);
+  useEffect(() => {
     setLoadingMeta(true);
     // Meta provides all blockchains, tokens and swappers information supported by Rango
     rangoClient.getAllMetadata().then((meta) => {
@@ -123,12 +154,11 @@ export const App = () => {
           searchTerm &&
           fullName.startsWith(searchTerm) &&
           fullName !== searchTerm &&
-          blockchain === "polygon"
+          blockchain === currentChain.toLowerCase()
         );
       })
-      .slice(0, 10)
       .map((item) => (
-        <li onClick={() => onSearch(item)} key={item.name}>
+        <li onClick={() => onSearch(item)} key={item.address}>
           {item.name}
         </li>
       ));
@@ -136,6 +166,21 @@ export const App = () => {
   }, [value]);
 
   const usdtAddressInPolygon = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+  // window.ethereum.on("accountsChanged", function (accounts: any) {
+  //   provider.getNetwork().then((network) => {
+  //     var temp = chains[network.chainId];
+  //     setCurrentChain(temp);
+  //   });
+
+  //   // Time to reload your interface with accounts[0]!
+  // });
+
+  window.ethereum.on("networkChanged", function (networkId: any) {
+    setCurrentChain(chains[networkId]);
+    // Time to reload your interface with networks[0]!);
+
+    // Time to reload your interface with the new networkId
+  });
   // tokensMeta?.tokens.find((t) => {
   //   if (t.name === "BNB") {
   //     console.log(t);
@@ -167,10 +212,18 @@ export const App = () => {
       setError(
         "Error connecting to MetMask. Please check Metamask and try again."
       );
+      notyf.error(
+        "Error connecting to MetMask. Please check Metamask and try again."
+      );
+
       return;
     }
 
     if (!window.ethereum.isConnected()) {
+      notyf.error(
+        "Error connecting to MetMask. Please check Metamask and try again."
+      );
+
       setError(
         "Error connecting to MetMask. Please check Metamask and try again."
       );
@@ -178,16 +231,20 @@ export const App = () => {
     }
 
     // it multi swap example, you should check chain id before each evm swap
-    if (window.ethereum.chainId && parseInt(window.ethereum.chainId) !== 137) {
-      setError(`Change meta mask network to 'Polygon'.`);
-      return;
-    }
+    // if (window.ethereum.chainId && parseInt(window.ethereum.chainId) !== 137) {
+    //   setError(`Change meta mask network to 'Polygon'.`);
+    //   return;
+    // }
 
     if (!userAddress) {
       setError(`Could not get wallet address.`);
+      notyf.error("Could not get wallet address.");
+
       return;
     }
     if (!inputAmount) {
+      notyf.error("Set input amount");
+
       setError(`Set input amount`);
       return;
     }
@@ -195,9 +252,9 @@ export const App = () => {
 
     setLoadingSwap(true);
     const connectedWallets = [
-      { blockchain: "POLYGON", addresses: [userAddress] },
+      { blockchain: currentChain, addresses: [userAddress] },
     ];
-    const selectedWallets = { POLYGON: userAddress };
+    const selectedWallets = { [currentChain]: userAddress };
     const from = {
       blockchain: currency1?.blockchain,
       symbol: currency1?.symbol,
@@ -213,6 +270,16 @@ export const App = () => {
     // If you just want to show route to user, set checkPrerequisites: false.
     // Also for multi steps swap, it is faster to get route first with {checkPrerequisites: false} and if users confirms.
     // check his balance with {checkPrerequisites: true} in another get best route request
+    console.log({
+      amount: inputAmount,
+      affiliateRef: null,
+      checkPrerequisites: true,
+      connectedWallets,
+      from,
+      selectedWallets,
+      to,
+    });
+
     const bestRoute = await rangoClient.getBestRoute({
       amount: inputAmount,
       affiliateRef: null,
@@ -231,6 +298,7 @@ export const App = () => {
       !bestRoute?.result?.swaps ||
       bestRoute.result?.swaps?.length === 0
     ) {
+      notyf.error("Invalid route response from server, please try again.");
       setError(`Invalid route response from server, please try again.`);
       setLoadingSwap(false);
       return;
@@ -246,10 +314,12 @@ export const App = () => {
       .reduce((a, b) => a && b);
 
     if (!hasEnoughBalance) {
+      notyf.error("Not enough balance or fee!");
       setError(`Not enough balance or fee!`);
       setLoadingSwap(false);
       return;
     } else if (bestRoute) {
+      setReadyToExecute(true);
       // await executeRoute(bestRoute);
     }
   };
@@ -280,6 +350,7 @@ export const App = () => {
           await signer.sendTransaction(finalTx);
           await checkApprovalSync(routeResponse, rangoClient);
           console.log("transaction approved successfully");
+          notyf.success("transaction approved successfully");
         } else {
           break;
         }
@@ -293,6 +364,7 @@ export const App = () => {
         rangoClient
       );
       console.log("transaction finished", { txStatus });
+      notyf.success("transaction finished successfully");
       setLoadingSwap(false);
     } catch (e) {
       const rawMessage = JSON.stringify(e).substring(0, 90) + "...";
@@ -367,189 +439,341 @@ export const App = () => {
   }
 
   useEffect(() => {
-    usdtToken = currency1;
-    maticToken = currency2;
-    console.log(maticToken, usdtToken);
-  }, [currency1, currency2]);
+    setCurrency1(emptyToken);
+    setCurrency2(emptyToken);
+  }, [currentChain]);
+
+  useEffect(() => {
+    setLoadingCurrency(true);
+    if (currency1.name !== "select") {
+      const fn = async () => {
+        var user = await getUserWallet();
+        var w: WalletAddresses = [
+          {
+            address: user,
+            blockchain: currentChain,
+          },
+        ];
+        let temp = await rangoClient.getWalletsDetails(w);
+        let all = temp.wallets[0].balances?.filter((item) => {
+          return item.asset.address === currency1.address;
+        });
+        if (all?.length === 1) {
+          // console.log(all[0].amount.amount);
+
+          details.availableAmount =
+            parseFloat(all[0].amount.amount) /
+            Math.pow(10, all[0].amount.decimals);
+          console.log(details);
+        }
+      };
+
+      fn();
+      setLoadingCurrency(false);
+    }
+    // const checkFlag = () => {
+    //   currCurrency.map((item: any) => {
+    //     if (item.value === null) {
+    //       window.setTimeout(
+    //         checkFlag,
+    //         150
+    //       ); /* this checks the flag every 100 milliseconds*/
+    //     }
+    //   });
+    // };
+    // checkFlag();
+    // console.log(currCurrency);
+  }, [currency1]);
+
+  useEffect(() => {
+    if (
+      currency1.name !== "select" &&
+      currency2.name !== "select" &&
+      inputAmount !== "0"
+    ) {
+      const fn = async () => {
+        await currency1?.image;
+        await currency2?.image;
+      };
+      fn()
+        .then(() => {
+          var temp = currency1.usdPrice / currency2.usdPrice;
+          setConversionRate(Math.floor(temp * 100) / 100);
+
+          swap();
+        })
+        .catch(() => {
+          fn();
+        });
+    }
+  }, [currency1, currency2, inputAmount]);
+
+  useEffect(() => {
+    details.fee = t;
+    details.estimatedTimeInSeconds = [];
+    details.totalFee = 0;
+    details.totalTime = 0;
+
+    bestRoute?.result?.swaps.map((item) => {
+      item.fee.map((single_fee) => {
+        details.fee.push(single_fee);
+        details.totalFee += parseFloat(single_fee.amount);
+      });
+      details.estimatedTimeInSeconds.push(item.estimatedTimeInSeconds);
+      details.totalTime += item.estimatedTimeInSeconds;
+    });
+    console.log(details.estimatedTimeInSeconds);
+  }, [bestRoute]);
+
+  const interChange = () => {
+    var temp = currency1;
+    setCurrency1(currency2);
+    setCurrency2(temp);
+  };
+
+  const handleExecution = async () => {
+    if (readyToExeccute && bestRoute !== undefined && bestRoute !== null) {
+      await executeRoute(bestRoute);
+    }
+  };
+  const roundOff = (val: number, decimal: number) => {
+    let p = Math.pow(10, decimal);
+    return Math.floor(val * p) / p;
+  };
+
+  const takMax = () => {
+    setInputAmount(details.availableAmount.toString());
+  };
 
   return (
     <div className="dashboard-root" style={{ width: "100%" }}>
-      <div className="dashboard-root ">
-        <div className="title">Coin Swap</div>
-        <div className="swap__box">
-          <div className="modal__style box1__container">
-            <div className="header__1">
-              <div className="title__1">You Pay</div>
-              <div
-                style={{
-                  flexDirection: "row",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
+      {loadingMeta && loadingCurrency ? (
+        <ClipLoader
+          color={"#fff"}
+          loading={loadingMeta}
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      ) : (
+        <div className="dashboard-root ">
+          <div className="title">Coin Swap</div>
+          <div className="swap__box">
+            <div className="modal__style box1__container">
+              <div className="header__1">
+                <div className="title__1">You Pay</div>
                 <div
-                  className="details__heading"
-                  style={{ marginRight: "4px" }}
+                  style={{
+                    flexDirection: "row",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
                 >
-                  Available:
+                  <div
+                    className="details__heading"
+                    style={{ marginRight: "4px" }}
+                  >
+                    Available:
+                  </div>
+                  <div className="details__description">
+                    {roundOff(details.availableAmount, 2)}
+                  </div>
+                  <button
+                    className="max_button_style__style max_button_style__text"
+                    onClick={takMax}
+                  >
+                    MAX
+                  </button>
                 </div>
-                <div className="details__description">78.79 USDT</div>
-                <button className="max_button_style__style max_button_style__text">
-                  MAX
-                </button>
               </div>
-            </div>
-            <div className="core__details">
-              <div className="currency" onClick={handleCurrency__1}>
-                <div className="currency__option">
-                  <img src={currency1?.image} className="currency_img" />
-                  <div className="font_base currency_name">
-                    {currency1?.symbol}
+              <div className="core__details">
+                <div className="currency" onClick={handleCurrency__1}>
+                  <div className="currency__option">
+                    <img src={currency1?.image} className="currency_img" />
+                    <div className="font_base currency_name">
+                      {currency1?.symbol}
+                    </div>
+                  </div>
+                  <img src={arrowDown} className="toggleArrow"></img>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "end",
+                    alignItems: "end",
+                  }}
+                >
+                  <input
+                    value={inputAmount}
+                    className="amount font_base"
+                    placeholder="0.01"
+                    onChange={(event) => {
+                      setInputAmount(event.target.value.toString());
+                    }}
+                  />
+                  <div className="amount_deduction font_base">
+                    -{roundOff(parseFloat(inputAmount) * currency1.usdPrice, 2)}
+                    $
                   </div>
                 </div>
-                <img src={arrowDown} className="toggleArrow"></img>
               </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div className="amount font_base">10</div>
-                <div className="amount_deduction font_base">-9.97$</div>
-              </div>
+              <div className="font_base wallet">ERC20</div>
             </div>
-            <div className="font_base wallet">BEP20</div>
-          </div>
-          <div className="position_setter">
-            <img src={zigZag} className="zigzag" />
-          </div>
-          <div className="modal__style box1__container">
-            <div className="header__1">
-              <div className="title__1 ">You recieve</div>
-              <div
-                className="font_base converted__amount"
-                style={{ display: "flex", flexDirection: "row" }}
-              >
-                = $9.89 <div style={{ color: "red" }}> (-0.82%)</div>
-              </div>
+            <div className="position_setter" onClick={interChange}>
+              <img
+                src={
+                  bestRoute?.result === null || bestRoute === undefined
+                    ? zigZag
+                    : swapperLogo
+                }
+                className="zigzag"
+              />
             </div>
-            <div className="core__details">
-              <div className="currency" onClick={handleCurrency__2}>
-                <div className="currency__option">
-                  <img src={currency2?.image} className="currency_img" />
-                  <div className="font_base currency_name">
-                    {currency2?.symbol}
+            <div className="modal__style box1__container">
+              <div className="header__1">
+                <div className="title__1 ">You recieve</div>
+                <div
+                  className="font_base converted__amount"
+                  style={{ display: "flex", flexDirection: "row" }}
+                >
+                  = ${roundOff(currency1.usdPrice * parseFloat(inputAmount), 4)}{" "}
+                </div>
+              </div>
+              <div className="core__details">
+                <div className="currency" onClick={handleCurrency__2}>
+                  <div className="currency__option">
+                    <img src={currency2?.image} className="currency_img" />
+                    <div className="font_base currency_name">
+                      {currency2?.symbol}
+                    </div>
+                  </div>
+                  <img src={arrowDown} className="toggleArrow"></img>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "end",
+                  }}
+                >
+                  <div className="amount2 font_base">
+                    {roundOff(ConversionRate * parseFloat(inputAmount), 2)}
+                  </div>
+                  <div className="amount_deduction font_base token">
+                    {currency2.symbol}
                   </div>
                 </div>
-                <img src={arrowDown} className="toggleArrow"></img>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "end",
-                }}
-              >
-                <div className="amount font_base">4.78</div>
-                <div className="amount_deduction font_base token">ANC</div>
+              <div className="font_base wallet">ERC20</div>
+            </div>
+          </div>
+          <div className="modal__style box2__container">
+            <div className="info__1">
+              <div>
+                <div className="font_base rate">Rate</div>
+                <div
+                  className="font_base conversion_rates"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    rowGap: "6px",
+                  }}
+                >
+                  <div className="font_base rate__values">
+                    1 {currency1.symbol} = {ConversionRate} {currency2.symbol}
+                  </div>
+                  <div className="font_base rate__values">
+                    1 {currency2.symbol} = {roundOff(1 / ConversionRate, 4)}{" "}
+                    {currency1.symbol}
+                  </div>
+                </div>
+              </div>
+              <div className="discription_box">
+                <div className="font_base discription">
+                  Multi-chain Dex Aggregator
+                </div>
+                <div className="font_base discription">
+                  Swap in 50+ blockchain amongst 10,000+ assets
+                </div>
               </div>
             </div>
-            <div className="font_base wallet">BEP20</div>
-          </div>
-        </div>
-        <div className="modal__style box2__container">
-          <div className="info__1">
-            <div>
-              <div className="font_base rate">Rate</div>
+            <div className="info__2">
               <div
-                className="font_base conversion_rates"
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  rowGap: "6px",
+                  justifyContent: "space-between",
+                  width: "50%",
                 }}
               >
-                <div className="font_base rate__values">
-                  1 USDT = 0.4784 ANC
-                </div>
-                <div className="font_base rate__values">
-                  1 USDT = 0.4784 ANC
-                </div>
-              </div>
-            </div>
-            <div className="discription_box">
-              <div className="font_base discription">
-                Multi-chain Dex Aggregator
-              </div>
-              <div className="font_base discription">
-                Swap in 50+ blockchain amongst 10,000+ assets
-              </div>
-            </div>
-          </div>
-          <div className="info__2">
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                width: "50%",
-              }}
-            >
-              <div className="font_base headings">Swap fee</div>
-              <div
-                className="font_base conversion_rates"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  rowGap: "6px",
-                }}
-              >
-                <div className="font_base rate__values">
-                  {" "}
-                  0.0847739 BSC.BNB{" "}
-                </div>
-                <div className="font_base rate__values">
-                  {" "}
-                  0.00000034 BSC.UST{" "}
-                </div>
-                <div className="font_base rate__values">
-                  0.08993849 TERRA.Luna{" "}
-                </div>
-                <div className="font_base rate__values">
-                  {" "}
-                  0.08993849 TERRA.UST{" "}
-                </div>
-              </div>
-              <div className="font_base total_1">Total = $0.73</div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                width: "50%",
-              }}
-            >
-              <div className="font_base headings"> Estimated arrival time</div>
-              <div
-                className="font_base conversion_rates"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  rowGap: "6px",
-                }}
-              >
-                <div className="font_base rate__values"> 1inch: 00:24 </div>
-                <div className="font_base rate__values">
-                  Terra bridge: 05:30{" "}
-                </div>
-                <div className="font_base rate__values">TerraSwap: 00:30</div>
-              </div>
-              <div className="font_base total_1"> Total = 06:15 </div>
-            </div>
-          </div>
-        </div>
-        <button className="swap_button font_base" onClick={swap}>
-          Swap
-        </button>
-      </div>
+                <div className="font_base headings">Swap fee</div>
+                <div
+                  className="font_base conversion_rates"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    rowGap: "6px",
+                  }}
+                >
+                  {details.fee.map((item, index) => {
+                    console.log(item.amount);
 
+                    return (
+                      <div className="font_base rate__values">
+                        {" "}
+                        {roundOff(parseFloat(item.amount), 4)}{" "}
+                        {item.asset.symbol}{" "}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="font_base total_1">
+                  Total = ${roundOff(details.totalFee, 4)}
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  width: "50%",
+                }}
+              >
+                <div className="font_base headings">
+                  {" "}
+                  Estimated arrival time
+                </div>
+                <div
+                  className="font_base conversion_rates"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    rowGap: "6px",
+                  }}
+                >
+                  {details.estimatedTimeInSeconds.map((item, index) => {
+                    console.log(item);
+                    let count = index + 1;
+                    return (
+                      <div className="font_base rate__values">
+                        {"Swap " + count + ": " + item}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="font_base total_1">
+                  {" "}
+                  Total = {roundOff(details.totalTime, 4)}{" "}
+                </div>
+              </div>
+            </div>
+          </div>
+          <button className="swap_button font_base" onClick={handleExecution}>
+            {window.ethereum.isConnected() ? "Swap" : "Connect"}
+          </button>
+        </div>
+      )}
       {modal && (
         <div className="modal" style={{ zIndex: "10" }}>
           <div onClick={toggleModal} className="overlay"></div>
@@ -565,9 +789,9 @@ export const App = () => {
                     value={value}
                     onChange={onChange}
                   />
-                  <div className="icon" onClick={() => onSearch(value)}>
+                  {/* <div className="icon" onClick={() => onSearch(value)}>
                     <i className="fas fa-search"></i>
-                  </div>
+                  </div> */}
                 </div>
                 <div
                   className="autocom-box font_base"
