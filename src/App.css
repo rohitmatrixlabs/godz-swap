@@ -1233,11 +1233,14 @@ button:hover {
 
 .position_setter {
   width: 0;
+  position: relative;
+  right: 3%;
+  z-index: 1;
 }
 .zigzag {
-  position: absolute;
+  /* position: relative;
   left: 47.5%;
-  top: 32%;
+  top: 32%; */
   z-index: 1;
   height: 40px;
   width: 40px;
@@ -1266,9 +1269,14 @@ button:hover {
     width: 95%;
     min-height: 88px;
   }
+  .position_setter {
+    height: 0;
+    right: 9%;
+    bottom: 33px;
+  }
   .zigzag {
-    left: 43%;
-    top: 31.6%;
+    /* left: 43%;
+    top: 31.6%; */
   }
   .swap_button {
     font-size: 14px;
