@@ -2,7 +2,7 @@
   "name": "rango-metamask-example",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://api.rango.exchange/meta?apiKey=3d58b20a-11a4-4d6f-9a09-a2807f0f0812",
+  "proxy": "https://api.rango.exchange",
   "dependencies": {
     "@ethersproject/providers": "^5.4.0",
     "@types/node": "^12.20.15",
