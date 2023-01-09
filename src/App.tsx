@@ -399,6 +399,7 @@ export const App = () => {
   };
 
   const executeRoute = async (routeResponse: BestRouteResponse) => {
+    setLoadingSwap(true);
     const provider = await new ethers.providers.Web3Provider(
       window.ethereum as any
     );
