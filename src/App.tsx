@@ -30,12 +30,23 @@ import {
   sleep,
 } from "./utils";
 var chains = require("./chainMap.json");
+// import { chains } from "./chainMap";
 
 declare let window: any;
 type WalletAddresses = { blockchain: string; address: string }[];
 
 export const App = () => {
-  const notyf = new Notyf({ duration: 2000 });
+  const notyf = new Notyf({
+    duration: 3000,
+    position: { x: "right", y: "top" },
+    dismissible: true,
+  });
+  const m: Map<string, string> = new Map([
+    ["137", "POLYGON"],
+    ["56", "BSC"],
+  ]);
+  console.log(m.get("13"));
+
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const [currentChain, setCurrentChain] = useState<any>();
@@ -69,6 +80,8 @@ export const App = () => {
     []
   );
   const [modal, setModal] = useState(false);
+  const [modal2, setModal2] = useState(false);
+
   const [search_value, setSearchValue] = useState<any>();
   const emptyToken = {
     name: "select",
@@ -85,11 +98,15 @@ export const App = () => {
   const [error, setError] = useState<string>("");
   const [data, setData] = useState<any>([]);
   const [value, setValue] = useState("");
+  const [value2, setValue2] = useState("");
   const [search_styles, setSearch_style] = useState("search-input");
+  const [search_styles2, setSearch_style2] = useState("search-input");
   const [search, setSearch] = useState<any>();
   const [currCurrency, setCurrCurrency] = useState<any>({});
   const [loadingCurrency, setLoadingCurrency] = useState<boolean>();
   const [ConversionRate, setConversionRate] = useState<number>(0);
+  const [connected, setConnected] = useState<boolean>(false);
+  const [signer, setSigner] = useState<any>();
 
   const onChange = (event: any) => {
     setValue(event.target.value);
@@ -97,6 +114,15 @@ export const App = () => {
       setSearch_style("search-input");
     } else {
       setSearch_style("search-input active");
+    }
+  };
+
+  const onNetworkSelect = (event: any) => {
+    setValue2(event.target.value);
+    if (event.target.value === "") {
+      setSearch_style2("search-input");
+    } else {
+      setSearch_style2("search-input active");
     }
   };
 
@@ -120,9 +146,15 @@ export const App = () => {
   };
 
   useEffect(() => {
+    getUserWallet().then((user) => {
+      setSigner(user);
+    });
     provider.getNetwork().then((network) => {
       var temp = chains[network.chainId];
-      setCurrentChain(temp);
+      if (temp !== undefined) setCurrentChain(temp);
+      else {
+        notyf.error("please change the chain to binance");
+      }
     });
   }, []);
   useEffect(() => {
@@ -136,7 +168,7 @@ export const App = () => {
   }, [rangoClient]);
 
   useEffect(() => {
-    if (tokensMeta === undefined) {
+    if (tokensMeta === undefined || currentChain === undefined) {
       return;
     }
     let temp = tokensMeta?.tokens
@@ -152,6 +184,7 @@ export const App = () => {
         }
         return (
           searchTerm &&
+          currentChain &&
           fullName.startsWith(searchTerm) &&
           fullName !== searchTerm &&
           blockchain === currentChain.toLowerCase()
@@ -165,6 +198,39 @@ export const App = () => {
     setSearch(temp);
   }, [value]);
 
+  useEffect(() => {
+    if (tokensMeta === undefined) {
+      return;
+    }
+
+    let temp = Array.from(m)
+      .filter(([key, value]) => {
+        var fullName = value.toLowerCase();
+        var term = value2.toLowerCase();
+        console.log(key, value);
+        return value2 && fullName.startsWith(term) && fullName !== term;
+      })
+      .map(([key, value]: any) => {
+        console.log(key);
+
+        if (true) {
+          let temp = toHex(key);
+          return (
+            <li
+              onClick={() => {
+                toggleModal2();
+                switchNetwork(temp);
+              }}
+              key={key}
+            >
+              {value}
+            </li>
+          );
+        }
+      });
+    setSearch(temp);
+  }, [value2]);
+
   const usdtAddressInPolygon = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
   // window.ethereum.on("accountsChanged", function (accounts: any) {
   //   provider.getNetwork().then((network) => {
@@ -176,7 +242,13 @@ export const App = () => {
   // });
 
   window.ethereum.on("networkChanged", function (networkId: any) {
-    setCurrentChain(chains[networkId]);
+    var temp = chains[networkId];
+    if (temp !== undefined) setCurrentChain(temp);
+    else {
+      setCurrentChain(temp);
+      notyf.error("please change the chain to binance");
+    }
+
     // Time to reload your interface with networks[0]!);
 
     // Time to reload your interface with the new networkId
@@ -201,6 +273,7 @@ export const App = () => {
   };
 
   const swap = async () => {
+    setReadyToExecute(false);
     setError("");
     setBestRoute(null);
     setTxStatus(null);
@@ -430,6 +503,15 @@ export const App = () => {
   };
   const toggleModal = () => {
     setModal(!modal);
+    setValue("");
+  };
+
+  const toggleModal2 = () => {
+    setModal2(!modal2);
+    setValue2("");
+    if (!modal2) {
+      setSearch_style2("search-input");
+    }
   };
 
   if (modal) {
@@ -441,6 +523,7 @@ export const App = () => {
   useEffect(() => {
     setCurrency1(emptyToken);
     setCurrency2(emptyToken);
+    console.log(currentChain, "useeffect");
   }, [currentChain]);
 
   useEffect(() => {
@@ -532,6 +615,7 @@ export const App = () => {
   };
 
   const handleExecution = async () => {
+    setLoadingSwap(true);
     if (readyToExeccute && bestRoute !== undefined && bestRoute !== null) {
       await executeRoute(bestRoute);
     }
@@ -544,17 +628,57 @@ export const App = () => {
   const takMax = () => {
     setInputAmount(details.availableAmount.toString());
   };
+  var text = "Connect";
+  window.ethereum.on("connect", (connectInfo: any) => {
+    text = "Swap";
+  });
+
+  const handleConnect = () => {
+    // setTicker(!ticker);
+    const fn = async () => {
+      var user = await getUserWallet();
+      var w: WalletAddresses = [
+        {
+          address: user,
+          blockchain: currentChain,
+        },
+      ];
+      let temp = await rangoClient.getWalletsDetails(w);
+    };
+
+    fn();
+  };
+  function toHex(d: any) {
+    var i = parseInt(d);
+    console.log(
+      "0x" + ("0" + Number(d).toString(16)).slice(-2).toUpperCase().toString()
+    );
+
+    return (
+      "0x" + ("0" + Number(d).toString(16)).slice(-2).toUpperCase().toString()
+    );
+  }
+
+  function switchNetwork(val: string) {
+    window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: val }], // chainId must be in HEX with 0x in front
+    });
+  }
 
   return (
     <div className="dashboard-root" style={{ width: "100%" }}>
       {loadingMeta && loadingCurrency ? (
-        <ClipLoader
-          color={"#fff"}
-          loading={loadingMeta}
-          size={150}
-          aria-label="Loading Spinner"
-          data-testid="loader"
-        />
+        <>
+          <ClipLoader
+            color={"#fff"}
+            loading={loadingMeta}
+            size={150}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+          <div className="font_base rate">Loading Meta Data...</div>
+        </>
       ) : (
         <div className="dashboard-root ">
           <div className="title">Coin Swap</div>
@@ -769,9 +893,24 @@ export const App = () => {
               </div>
             </div>
           </div>
-          <button className="swap_button font_base" onClick={handleExecution}>
-            {window.ethereum.isConnected() ? "Swap" : "Connect"}
-          </button>
+
+          {!currentChain ? (
+            <button className="swap_button font_base" onClick={toggleModal2}>
+              Change Network
+            </button>
+          ) : signer === undefined || signer === null ? (
+            <button className="swap_button font_base" onClick={handleConnect}>
+              Connect
+            </button>
+          ) : (
+            <button
+              className="swap_button font_base"
+              disabled={loadingSwap || !readyToExeccute}
+              onClick={handleExecution}
+            >
+              Swap
+            </button>
+          )}
         </div>
       )}
       {modal && (
@@ -804,6 +943,42 @@ export const App = () => {
             <button
               className="close-modal font_base swap_button"
               onClick={toggleModal}
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}
+      {modal2 && (
+        <div className="modal" style={{ zIndex: "10" }}>
+          <div onClick={toggleModal2} className="overlay"></div>
+          <div className="modal-content">
+            <div className="wrapper">
+              <div className="font_base popup_heading "> Select a Chain</div>
+
+              <div className={search_styles2}>
+                <div style={{ alignItems: "center", display: "flex" }}>
+                  <input
+                    type="text"
+                    placeholder="Type to search.."
+                    value={value2}
+                    onChange={onNetworkSelect}
+                  />
+                  {/* <div className="icon" onClick={() => onSearch(value)}>
+                    <i className="fas fa-search"></i>
+                  </div> */}
+                </div>
+                <div
+                  className="autocom-box font_base"
+                  style={{ color: "black" }}
+                >
+                  {search}
+                </div>
+              </div>
+            </div>
+            <button
+              className="close-modal font_base swap_button"
+              onClick={toggleModal2}
             >
               CLOSE
             </button>
