@@ -393,6 +393,7 @@ export const App = () => {
       return;
     } else if (bestRoute) {
       setReadyToExecute(true);
+      setLoadingSwap(false);
       // await executeRoute(bestRoute);
     }
   };
