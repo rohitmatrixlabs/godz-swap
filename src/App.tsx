@@ -41,10 +41,7 @@ export const App = () => {
     position: { x: "right", y: "top" },
     dismissible: true,
   });
-  const m: Map<string, string> = new Map([
-    ["137", "POLYGON"],
-    ["56", "BSC"],
-  ]);
+  const m: Map<string, string> = new Map([["1", "ETH"]]);
   console.log(m.get("13"));
 
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
@@ -153,7 +150,7 @@ export const App = () => {
       var temp = chains[network.chainId];
       if (temp !== undefined) setCurrentChain(temp);
       else {
-        notyf.error("please change the chain to binance");
+        notyf.error("please change the chain");
       }
     });
   }, []);
@@ -653,18 +650,16 @@ export const App = () => {
   function toHex(d: any) {
     var i = parseInt(d);
     console.log(
-      "0x" + ("0" + Number(d).toString(16)).slice(-2).toUpperCase().toString()
+      "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString()
     );
 
-    return (
-      "0x" + ("0" + Number(d).toString(16)).slice(-2).toUpperCase().toString()
-    );
+    return "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString();
   }
 
   function switchNetwork(val: string) {
     window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: val }], // chainId must be in HEX with 0x in front
+      params: [{ chainId: "0x1" }], // chainId must be in HEX with 0x in front
     });
   }
 
