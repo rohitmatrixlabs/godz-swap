@@ -41,17 +41,24 @@ export const App = () => {
     position: { x: "right", y: "top" },
     dismissible: true,
   });
-  const m: Map<string, string> = new Map([["1", "ETH"]]);
-  console.log(m.get("13"));
+  const m: Map<string, string> = new Map([
+    ["1", "eth"],
+    ["250", "fantom"],
+    ["245022934", "solana"],
+    ["56", "bsc"],
+  ]);
 
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
   const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const [currentChain, setCurrentChain] = useState<any>();
+  const [currentChain, setCurrentChain] = useState<any>(0);
   const rangoClient = useMemo(() => new RangoClient(RANGO_API_KEY), []);
   const [wallet, setWallet] = useState<WalletDetail>();
   const [tokensMeta, setTokenMeta] = useState<MetaResponse | null>();
   const [inputAmount, setInputAmount] = useState<string>("0.01");
   const [bestRoute, setBestRoute] = useState<BestRouteResponse | null>();
+  const [network1, setNetwork1] = useState<any>(56);
+  const [network2, setNetwork2] = useState<any>(56);
+  const [activeNetwork, setActiveNetwork] = useState<number | string>();
   const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(
     null
   );
@@ -96,8 +103,8 @@ export const App = () => {
   const [data, setData] = useState<any>([]);
   const [value, setValue] = useState("");
   const [value2, setValue2] = useState("");
-  const [search_styles, setSearch_style] = useState("search-input");
-  const [search_styles2, setSearch_style2] = useState("search-input");
+  const [search_styles, setSearch_style] = useState("search-input active");
+  const [search_styles2, setSearch_style2] = useState("search-input active");
   const [search, setSearch] = useState<any>();
   const [currCurrency, setCurrCurrency] = useState<any>({});
   const [loadingCurrency, setLoadingCurrency] = useState<boolean>();
@@ -108,7 +115,7 @@ export const App = () => {
   const onChange = (event: any) => {
     setValue(event.target.value);
     if (event.target.value === "") {
-      setSearch_style("search-input");
+      setSearch_style("search-input active");
     } else {
       setSearch_style("search-input active");
     }
@@ -117,7 +124,7 @@ export const App = () => {
   const onNetworkSelect = (event: any) => {
     setValue2(event.target.value);
     if (event.target.value === "") {
-      setSearch_style2("search-input");
+      setSearch_style2("search-input active");
     } else {
       setSearch_style2("search-input active");
     }
@@ -125,7 +132,7 @@ export const App = () => {
 
   const onSearch = (searchTerm: any) => {
     setValue("");
-    setSearch_style("search-input");
+    setSearch_style("search-input active");
     console.log(searchTerm);
     toggleModal();
     setLoadingCurrency(false);
@@ -138,27 +145,44 @@ export const App = () => {
     // our api to fetch the search result
   };
 
-  const notFound = () => {
-    return <li>{"Token Not Found"}</li>;
-  };
+  // const signerDisconnect = () => {
+  //   console.log("lol");
+
+  //   setSigner(null);
+  // };
+  // window.ethereum.on("disconnect", signerDisconnect);
 
   useEffect(() => {
     getUserWallet().then((user) => {
       setSigner(user);
     });
     provider.getNetwork().then((network) => {
-      var temp = chains[network.chainId];
-      if (temp !== undefined) setCurrentChain(temp);
-      else {
-        notyf.error("please change the chain");
-      }
+      setCurrentChain(network.chainId);
     });
   }, []);
+
+  useEffect(() => {}, [signer]);
   useEffect(() => {
     setLoadingMeta(true);
+    console.log(currentChain);
+
     // Meta provides all blockchains, tokens and swappers information supported by Rango
     rangoClient.getAllMetadata().then((meta) => {
       setTokenMeta(meta);
+      var temp = meta?.tokens.find(
+        (t) =>
+          t.blockchain.toLowerCase() === chains[network1] &&
+          t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+      );
+
+      if (temp) setCurrency1(temp);
+
+      var temp2 = meta?.tokens.find(
+        (t) =>
+          t.blockchain.toLowerCase() === chains[network2] &&
+          t.address === "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+      );
+      if (temp2) setCurrency2(temp2);
 
       setLoadingMeta(false);
     });
@@ -173,6 +197,7 @@ export const App = () => {
         const searchTerm = value.toLowerCase();
         var fullName = "";
         var blockchain = "";
+        var network = currId === 1 ? chains[network1] : chains[network2];
         if (item.name !== null) {
           fullName = item.name.toLowerCase();
           blockchain = item.blockchain.toLowerCase();
@@ -181,10 +206,8 @@ export const App = () => {
         }
         return (
           searchTerm &&
-          currentChain &&
           fullName.startsWith(searchTerm) &&
-          fullName !== searchTerm &&
-          blockchain === currentChain.toLowerCase()
+          blockchain === network
         );
       })
       .map((item) => (
@@ -199,24 +222,27 @@ export const App = () => {
     if (tokensMeta === undefined) {
       return;
     }
+    console.log("useEffect");
 
-    let temp = Array.from(m)
-      .filter(([key, value]) => {
+    let temp = Object.entries(chains)
+      .filter(([key, value]: any) => {
         var fullName = value.toLowerCase();
         var term = value2.toLowerCase();
-        console.log(key, value);
-        return value2 && fullName.startsWith(term) && fullName !== term;
+        // console.log(key, value);
+        return value2 && fullName.startsWith(term);
       })
       .map(([key, value]: any) => {
-        console.log(key);
+        // console.log(key);
 
         if (true) {
-          let temp = toHex(key);
           return (
             <li
               onClick={() => {
                 toggleModal2();
-                switchNetwork(temp);
+                if (activeNetwork === 1) {
+                  switchNetwork(key);
+                  setNetwork1(key);
+                } else setNetwork2(key);
               }}
               key={key}
             >
@@ -239,29 +265,11 @@ export const App = () => {
   // });
 
   window.ethereum.on("networkChanged", function (networkId: any) {
-    var temp = chains[networkId];
-    if (temp !== undefined) setCurrentChain(temp);
-    else {
-      setCurrentChain(temp);
-      notyf.error("please change the chain to binance");
-    }
-
+    setCurrentChain(networkId);
     // Time to reload your interface with networks[0]!);
 
     // Time to reload your interface with the new networkId
   });
-  // tokensMeta?.tokens.find((t) => {
-  //   if (t.name === "BNB") {
-  //     console.log(t);
-  //   }
-  // });
-
-  var maticToken = tokensMeta?.tokens.find(
-    (t) => t.blockchain === "POLYGON" && t.address === usdtAddressInPolygon
-  );
-  var usdtToken = tokensMeta?.tokens.find(
-    (t) => t.blockchain === "POLYGON" && t.address === null
-  );
 
   const getUserWallet = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -305,6 +313,11 @@ export const App = () => {
     //   setError(`Change meta mask network to 'Polygon'.`);
     //   return;
     // }
+    if (currentChain !== network1) {
+      switchNetwork(network1);
+      notyf.error("change network and try again");
+      return;
+    }
 
     if (!userAddress) {
       setError(`Could not get wallet address.`);
@@ -322,9 +335,14 @@ export const App = () => {
 
     setLoadingSwap(true);
     const connectedWallets = [
-      { blockchain: currentChain, addresses: [userAddress] },
+      {
+        blockchain: chains[currentChain].toUpperCase(),
+        addresses: [userAddress],
+      },
     ];
-    const selectedWallets = { [currentChain]: userAddress };
+    const selectedWallets = {
+      [chains[currentChain].toUpperCase()]: userAddress,
+    };
     const from = {
       blockchain: currency1?.blockchain,
       symbol: currency1?.symbol,
@@ -340,15 +358,6 @@ export const App = () => {
     // If you just want to show route to user, set checkPrerequisites: false.
     // Also for multi steps swap, it is faster to get route first with {checkPrerequisites: false} and if users confirms.
     // check his balance with {checkPrerequisites: true} in another get best route request
-    console.log({
-      amount: inputAmount,
-      affiliateRef: null,
-      checkPrerequisites: true,
-      connectedWallets,
-      from,
-      selectedWallets,
-      to,
-    });
 
     const bestRoute = await rangoClient.getBestRoute({
       amount: inputAmount,
@@ -483,11 +492,6 @@ export const App = () => {
     (sw) => sw.id === bestRoute?.result?.swaps[0].swapperId
   )?.logo;
 
-  const childToParent = (val: string) => {
-    // setSearchValue(val);
-    console.log(data);
-  };
-
   const handleCurrency__1 = () => {
     setCurrId(1);
 
@@ -505,12 +509,70 @@ export const App = () => {
     setValue("");
   };
 
+  useEffect(() => {
+    if (tokensMeta === undefined || currentChain === undefined) {
+      return;
+    }
+    let temp = tokensMeta?.tokens
+      .filter((item) => {
+        var blockchain = "";
+        // console.log(item, currId);
+
+        var network = currId === 1 ? chains[network1] : chains[network2];
+        if (item.name !== null) {
+          blockchain = item.blockchain.toLowerCase();
+        } else {
+          return false;
+        }
+        return blockchain === network;
+      })
+      .map((item) => (
+        <li onClick={() => onSearch(item)} key={item.address}>
+          {item.name}
+        </li>
+      ));
+    setSearch(temp);
+  }, [modal]);
+
+  useEffect(() => {
+    let temp = Object.entries(chains).map(([key, value]: any) => {
+      if (true) {
+        return (
+          <li
+            onClick={() => {
+              toggleModal2();
+              if (activeNetwork === 1) {
+                switchNetwork(key);
+                setNetwork1(key);
+              } else setNetwork2(key);
+            }}
+            key={key}
+          >
+            {value}
+          </li>
+        );
+      }
+    });
+    setSearch(temp);
+  }, [modal2]);
+
   const toggleModal2 = () => {
     setModal2(!modal2);
     setValue2("");
     if (!modal2) {
-      setSearch_style2("search-input");
+      setSearch_style2("search-input active");
+    } else {
     }
+  };
+
+  const handleNetwork__1 = () => {
+    toggleModal2();
+    setActiveNetwork(1);
+  };
+
+  const handleNetwork__2 = () => {
+    toggleModal2();
+    setActiveNetwork(2);
   };
 
   if (modal) {
@@ -520,10 +582,40 @@ export const App = () => {
   }
 
   useEffect(() => {
-    setCurrency1(emptyToken);
-    setCurrency2(emptyToken);
+    var temp = tokensMeta?.tokens.find(
+      (t) =>
+        t.blockchain.toLowerCase() === chains[network1] &&
+        t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+    );
+
+    if (temp) {
+      setCurrency1(temp);
+    } else {
+      temp = tokensMeta?.tokens.find(
+        (t) => t.blockchain.toLowerCase() === chains[network1]
+      );
+      // console.log(temp2);
+
+      if (temp) setCurrency1(temp);
+    }
+
+    var temp2 = tokensMeta?.tokens.find(
+      (t) =>
+        t.blockchain.toLowerCase() === chains[network2] &&
+        t.address === "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+    );
+    if (temp2) {
+      setCurrency2(temp2);
+    } else {
+      temp2 = tokensMeta?.tokens.find(
+        (t) => t.blockchain.toLowerCase() === chains[network2]
+      );
+      // console.log(temp2);
+
+      if (temp2) setCurrency2(temp2);
+    }
     console.log(currentChain, "useeffect");
-  }, [currentChain]);
+  }, [currentChain, network1, network2, signer]);
 
   useEffect(() => {
     setLoadingCurrency(true);
@@ -533,7 +625,7 @@ export const App = () => {
         var w: WalletAddresses = [
           {
             address: user,
-            blockchain: currentChain,
+            blockchain: chains[currentChain].toUpperCase(),
           },
         ];
         let temp = await rangoClient.getWalletsDetails(w);
@@ -581,14 +673,13 @@ export const App = () => {
         .then(() => {
           var temp = currency1.usdPrice / currency2.usdPrice;
           setConversionRate(Math.floor(temp * 100) / 100);
-
           swap();
         })
         .catch(() => {
           fn();
         });
     }
-  }, [currency1, currency2, inputAmount]);
+  }, [currency1, currency2, inputAmount, currentChain]);
 
   useEffect(() => {
     details.fee = t;
@@ -604,16 +695,20 @@ export const App = () => {
       details.estimatedTimeInSeconds.push(item.estimatedTimeInSeconds);
       details.totalTime += item.estimatedTimeInSeconds;
     });
-    console.log(details.estimatedTimeInSeconds);
   }, [bestRoute]);
 
   const interChange = () => {
     var temp = currency1;
+    var n_temp = network1;
     setCurrency1(currency2);
     setCurrency2(temp);
+    setNetwork1(network2);
+    setNetwork2(n_temp);
   };
 
   const handleExecution = async () => {
+    console.log("why");
+
     setLoadingSwap(true);
     if (readyToExeccute && bestRoute !== undefined && bestRoute !== null) {
       await executeRoute(bestRoute);
@@ -639,7 +734,7 @@ export const App = () => {
       var w: WalletAddresses = [
         {
           address: user,
-          blockchain: currentChain,
+          blockchain: chains[currentChain],
         },
       ];
       let temp = await rangoClient.getWalletsDetails(w);
@@ -656,12 +751,17 @@ export const App = () => {
     return "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString();
   }
 
-  function switchNetwork(val: string) {
-    window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x1" }], // chainId must be in HEX with 0x in front
-    });
-  }
+  const switchNetwork = async (key: string) => {
+    try {
+      var val = toHex(key);
+      window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: val }], // chainId must be in HEX with 0x in front
+      });
+    } catch (e) {
+      console.log("w");
+    }
+  };
 
   return (
     <div className="dashboard-root" style={{ width: "100%" }}>
@@ -678,7 +778,7 @@ export const App = () => {
         </>
       ) : (
         <div className="dashboard-root ">
-          <div className="title">Coin Swap</div>
+          <div className="title">Godzilla Dex Aggregator</div>
           <div className="swap__box">
             <div className="modal__style box1__container">
               <div className="header__1">
@@ -707,6 +807,14 @@ export const App = () => {
                   </button>
                 </div>
               </div>
+              <div className="currency" onClick={handleNetwork__1}>
+                <div className="currency__option">
+                  <div className="font_base currency_name">
+                    {chains[network1].toUpperCase()}
+                  </div>
+                </div>
+                <img src={arrowDown} className="toggleArrow"></img>
+              </div>
               <div className="core__details">
                 <div className="currency" onClick={handleCurrency__1}>
                   <div className="currency__option">
@@ -723,6 +831,10 @@ export const App = () => {
                     flexDirection: "column",
                     justifyContent: "end",
                     alignItems: "end",
+                    backgroundColor: "transparent",
+                    border: "1px solid rgba(255, 255, 255, 0.26)",
+                    borderRadius: "10px",
+                    width: "60%",
                   }}
                 >
                   <input
@@ -754,12 +866,14 @@ export const App = () => {
             <div className="modal__style box1__container">
               <div className="header__1">
                 <div className="title__1 ">You recieve</div>
-                <div
-                  className="font_base converted__amount"
-                  style={{ display: "flex", flexDirection: "row" }}
-                >
-                  = ${roundOff(currency1.usdPrice * parseFloat(inputAmount), 4)}{" "}
+              </div>
+              <div className="currency" onClick={handleNetwork__2}>
+                <div className="currency__option">
+                  <div className="font_base currency_name">
+                    {chains[network2].toUpperCase()}
+                  </div>
                 </div>
+                <img src={arrowDown} className="toggleArrow"></img>
               </div>
               <div className="core__details">
                 <div className="currency" onClick={handleCurrency__2}>
@@ -774,16 +888,22 @@ export const App = () => {
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "row",
+                    flexDirection: "column",
                     alignItems: "end",
+                    border: "1px solid rgba(255, 255, 255, 0.26)",
+                    borderRadius: "10px",
+                    width: "60%",
                   }}
                 >
-                  <div className="amount2 font_base">
+                  <div className="amount font_base">
                     {roundOff(ConversionRate * parseFloat(inputAmount), 2)}
                   </div>
-                  <div className="amount_deduction font_base token">
-                    {currency2.symbol}
+                  <div className="amount_deduction font_base">
+                    ${roundOff(currency1.usdPrice * parseFloat(inputAmount), 4)}{" "}
                   </div>
+                  {/* <div className="amount_deduction font_base token">
+                    {currency2.symbol}
+                  </div> */}
                 </div>
               </div>
               <div className="font_base wallet">ERC20</div>
@@ -838,8 +958,6 @@ export const App = () => {
                   }}
                 >
                   {details.fee.map((item, index) => {
-                    console.log(item.amount);
-
                     return (
                       <div className="font_base rate__values">
                         {" "}
@@ -874,28 +992,24 @@ export const App = () => {
                   }}
                 >
                   {details.estimatedTimeInSeconds.map((item, index) => {
-                    console.log(item);
                     let count = index + 1;
                     return (
                       <div className="font_base rate__values">
-                        {"Swap " + count + ": " + item}
+                        {"Swap " + count + ": " + item + " sec"}
                       </div>
                     );
                   })}
                 </div>
                 <div className="font_base total_1">
                   {" "}
-                  Total = {roundOff(details.totalTime, 4)}{" "}
+                  Total = {roundOff(details.totalTime, 4)}
+                  {" sec"}
                 </div>
               </div>
             </div>
           </div>
 
-          {!currentChain ? (
-            <button className="swap_button font_base" onClick={toggleModal2}>
-              Change Network
-            </button>
-          ) : signer === undefined || signer === null ? (
+          {signer === undefined || signer === null ? (
             <button className="swap_button font_base" onClick={handleConnect}>
               Connect
             </button>
