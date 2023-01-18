@@ -64,7 +64,7 @@ export const App = () => {
   );
   let t: SwapFee[] = [];
   let t1: Number[] = [];
-  let t2: { type: string; time: Number; image: String }[] = [];
+  let t2: { type: string; time: Number; image: string }[] = [];
   const [details, setDetails] = useState({
     fee: t,
     estimatedTimeInSeconds: t2,
@@ -1066,7 +1066,6 @@ export const App = () => {
                     placeholder="Select Token"
                     value={value}
                     onChange={onChange}
-                    className="new_input"
                   />
                   {/* <div className="icon" onClick={() => onSearch(value)}>
                     <i className="fas fa-search"></i>
@@ -1074,7 +1073,7 @@ export const App = () => {
                 </div>
                 <div
                   className="autocom-box font_base"
-                  style={{ color: "white" }}
+                  style={{ color: "black" }}
                 >
                   {search}
                 </div>
@@ -1098,10 +1097,9 @@ export const App = () => {
                 <div style={{ alignItems: "center", display: "flex" }}>
                   <input
                     type="text"
-                    placeholder="Select chain"
+                    placeholder="Select Chain"
                     value={value2}
                     onChange={onNetworkSelect}
-                    className="new_input"
                   />
                   {/* <div className="icon" onClick={() => onSearch(value)}>
                     <i className="fas fa-search"></i>
@@ -1109,7 +1107,7 @@ export const App = () => {
                 </div>
                 <div
                   className="autocom-box font_base"
-                  style={{ color: "white" }}
+                  style={{ color: "black" }}
                 >
                   {search}
                 </div>

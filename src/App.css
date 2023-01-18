@@ -1382,7 +1382,6 @@ button:hover {
     font-size: 12px;
     line-height: 13px;
   }
-
   .amount {
     font-size: 24px;
     line-height: 27px;
@@ -1432,6 +1431,7 @@ body.active-modal {
   left: 50%;
   transform: translate(-50%, -50%);
   line-height: 1.4;
+  background: #f1f1f1;
   padding: 14px 28px;
   border-radius: 20px;
   max-width: 600px;
@@ -1439,12 +1439,6 @@ body.active-modal {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.28) -16.91%,
-    rgba(255, 255, 255, 0.26) 100%
-  );
-  backdrop-filter: blur(20px);
 }
 
 .wrapper {
@@ -1452,7 +1446,7 @@ body.active-modal {
 }
 
 .wrapper .search-input {
-  background: rgba(255, 255, 255, 0.28) 100%;
+  background: #fff;
   width: 100%;
   border-radius: 5px;
   position: relative;
@@ -1488,12 +1482,6 @@ body.active-modal {
   pointer-events: auto;
 }
 
-.new_input {
-  background: rgba(23, 23, 23, 0.16);
-  color: white;
-  border-radius: 4px;
-}
-
 .autocom-box li {
   list-style: none;
   padding: 8px 12px;
@@ -1508,7 +1496,6 @@ body.active-modal {
 }
 .autocom-box li:hover {
   background: #efefef;
-  color: black;
 }
 
 .search-input .icon {
