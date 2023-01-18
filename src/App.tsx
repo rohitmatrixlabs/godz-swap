@@ -875,7 +875,19 @@ export const App = () => {
               <div className="font_base wallet">ERC20</div>
             </div>
             <div className="position_setter" onClick={interChange}>
-              <img src={zigZag} className="zigzag" />
+              {!loadingSwap ? (
+                <img src={zigZag} className="zigzag" />
+              ) : (
+                <ClipLoader
+                  color={"#fff"}
+                  loading={loadingSwap}
+                  size={50}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                  className="zigzag"
+                  // style={{}}
+                />
+              )}
             </div>
             <div className="modal__style box1__container">
               <div className="header__1">
