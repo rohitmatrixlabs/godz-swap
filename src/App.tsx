@@ -622,6 +622,12 @@ export const App = () => {
     }
   }, [network1]);
 
+  var toma = new Set();
+  tokensMeta?.tokens.map((token) => {
+    toma.add(token.blockchain);
+  });
+  console.log(toma);
+
   useEffect(() => {
     setLoadingCurrency(true);
     if (!chains[currentChain]) return;
