@@ -119,6 +119,7 @@ button:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  max-width: 1524px;
 }
 
 .title {
@@ -1159,9 +1160,11 @@ button:hover {
   margin-bottom: 8px;
 }
 .rate__values {
+  display: flex;
   font-size: 12px;
   line-height: 13px;
   color: rgba(255, 255, 255, 0.68);
+  align-items: center;
 }
 
 .discription {
@@ -1449,7 +1452,7 @@ body.active-modal {
 }
 
 .wrapper .search-input {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.28) 100%;
   width: 100%;
   border-radius: 5px;
   position: relative;
@@ -1485,6 +1488,12 @@ body.active-modal {
   pointer-events: auto;
 }
 
+.new_input {
+  background: rgba(23, 23, 23, 0.16);
+  color: white;
+  border-radius: 4px;
+}
+
 .autocom-box li {
   list-style: none;
   padding: 8px 12px;
@@ -1499,6 +1508,7 @@ body.active-modal {
 }
 .autocom-box li:hover {
   background: #efefef;
+  color: black;
 }
 
 .search-input .icon {

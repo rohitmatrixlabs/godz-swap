@@ -64,7 +64,7 @@ export const App = () => {
   );
   let t: SwapFee[] = [];
   let t1: Number[] = [];
-  let t2: { type: string; time: Number }[] = [];
+  let t2: { type: string; time: Number; image: String }[] = [];
   const [details, setDetails] = useState({
     fee: t,
     estimatedTimeInSeconds: t2,
@@ -197,6 +197,7 @@ export const App = () => {
     }
     let temp = tokensMeta?.tokens
       .filter((item) => {
+        if (value === "") return true;
         const searchTerm = value.toLowerCase();
         var fullName = "";
         var blockchain = "";
@@ -208,9 +209,7 @@ export const App = () => {
           return false;
         }
         return (
-          searchTerm &&
-          fullName.startsWith(searchTerm) &&
-          blockchain === network
+          searchTerm && fullName.includes(searchTerm) && blockchain === network
         );
       })
       .map((item) => (
@@ -229,10 +228,11 @@ export const App = () => {
 
     let temp = Object.entries(chains)
       .filter(([key, value]: any) => {
+        if (value2 === "") return true;
         var fullName = value.toLowerCase();
         var term = value2.toLowerCase();
         // console.log(key, value);
-        return value2 && fullName.startsWith(term);
+        return value2 && fullName.includes(term);
       })
       .map(([key, value]: any) => {
         // console.log(key);
@@ -681,7 +681,7 @@ export const App = () => {
       fn()
         .then(() => {
           var temp = currency1.usdPrice / currency2.usdPrice;
-          setConversionRate(Math.floor(temp * 100) / 100);
+          setConversionRate(Math.floor(temp * 10000) / 10000);
           swap();
         })
         .catch(() => {
@@ -712,6 +712,7 @@ export const App = () => {
       details.estimatedTimeInSeconds.push({
         time: item.estimatedTimeInSeconds,
         type: item.swapperType,
+        image: item.to.logo,
       });
       details.totalTime += item.estimatedTimeInSeconds;
     });
@@ -874,14 +875,7 @@ export const App = () => {
               <div className="font_base wallet">ERC20</div>
             </div>
             <div className="position_setter" onClick={interChange}>
-              <img
-                src={
-                  bestRoute?.result === null || bestRoute === undefined
-                    ? zigZag
-                    : swapperLogo
-                }
-                className="zigzag"
-              />
+              <img src={zigZag} className="zigzag" />
             </div>
             <div className="modal__style box1__container">
               <div className="header__1">
@@ -1019,8 +1013,19 @@ export const App = () => {
                   {details.estimatedTimeInSeconds.map((item, index) => {
                     let count = index + 1;
                     return (
-                      <div className="font_base rate__values">
-                        {"Swap [" + item.type + "]: " + item.time + " sec"}
+                      <div className="font_base rate__values flex flex-row items-center">
+                        Swap{" "}
+                        <img
+                          src={item?.image}
+                          alt=""
+                          style={{
+                            width: "15px",
+                            height: "15px",
+                            marginLeft: "5px",
+                            marginRight: "5px",
+                          }}
+                        />{" "}
+                        [{item.type}]: {item.time} sec
                       </div>
                     );
                   })}
@@ -1054,15 +1059,14 @@ export const App = () => {
           <div onClick={toggleModal} className="overlay"></div>
           <div className="modal-content">
             <div className="wrapper">
-              <div className="font_base popup_heading "> Select a Token</div>
-
               <div className={search_styles}>
                 <div style={{ alignItems: "center", display: "flex" }}>
                   <input
                     type="text"
-                    placeholder="Type to search.."
+                    placeholder="Select Token"
                     value={value}
                     onChange={onChange}
+                    className="new_input"
                   />
                   {/* <div className="icon" onClick={() => onSearch(value)}>
                     <i className="fas fa-search"></i>
@@ -1070,7 +1074,7 @@ export const App = () => {
                 </div>
                 <div
                   className="autocom-box font_base"
-                  style={{ color: "black" }}
+                  style={{ color: "white" }}
                 >
                   {search}
                 </div>
@@ -1090,15 +1094,14 @@ export const App = () => {
           <div onClick={toggleModal2} className="overlay"></div>
           <div className="modal-content">
             <div className="wrapper">
-              <div className="font_base popup_heading "> Select a Chain</div>
-
               <div className={search_styles2}>
                 <div style={{ alignItems: "center", display: "flex" }}>
                   <input
                     type="text"
-                    placeholder="Type to search.."
+                    placeholder="Select chain"
                     value={value2}
                     onChange={onNetworkSelect}
+                    className="new_input"
                   />
                   {/* <div className="icon" onClick={() => onSearch(value)}>
                     <i className="fas fa-search"></i>
@@ -1106,7 +1109,7 @@ export const App = () => {
                 </div>
                 <div
                   className="autocom-box font_base"
-                  style={{ color: "black" }}
+                  style={{ color: "white" }}
                 >
                   {search}
                 </div>
