@@ -64,9 +64,10 @@ export const App = () => {
   );
   let t: SwapFee[] = [];
   let t1: Number[] = [];
+  let t2: { type: string; time: Number }[] = [];
   const [details, setDetails] = useState({
     fee: t,
-    estimatedTimeInSeconds: t1,
+    estimatedTimeInSeconds: t2,
     swapChainType: "",
     usdTransfer: 0,
     convertLeftRate: 0,
@@ -77,6 +78,8 @@ export const App = () => {
     maxTime: 0,
     minTime: 0,
     totalTime: 0,
+    outputAmount: "0",
+    amountDeduction: "0",
   });
   const [currId, setCurrId] = useState(1);
   const [readyToExeccute, setReadyToExecute] = useState<boolean>(false);
@@ -582,23 +585,6 @@ export const App = () => {
   }
 
   useEffect(() => {
-    var temp = tokensMeta?.tokens.find(
-      (t) =>
-        t.blockchain.toLowerCase() === chains[network1] &&
-        t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
-    );
-
-    if (temp) {
-      setCurrency1(temp);
-    } else {
-      temp = tokensMeta?.tokens.find(
-        (t) => t.blockchain.toLowerCase() === chains[network1]
-      );
-      // console.log(temp2);
-
-      if (temp) setCurrency1(temp);
-    }
-
     var temp2 = tokensMeta?.tokens.find(
       (t) =>
         t.blockchain.toLowerCase() === chains[network2] &&
@@ -615,13 +601,34 @@ export const App = () => {
       if (temp2) setCurrency2(temp2);
     }
     console.log(currentChain, "useeffect");
-  }, [currentChain, network1, network2, signer]);
+  }, [network2]);
+
+  useEffect(() => {
+    var temp = tokensMeta?.tokens.find(
+      (t) =>
+        t.blockchain.toLowerCase() === chains[network1] &&
+        t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+    );
+
+    if (temp) {
+      setCurrency1(temp);
+    } else {
+      temp = tokensMeta?.tokens.find(
+        (t) => t.blockchain.toLowerCase() === chains[network1]
+      );
+      // console.log(temp2);
+
+      if (temp) setCurrency1(temp);
+    }
+  }, [network1]);
 
   useEffect(() => {
     setLoadingCurrency(true);
+    if (!chains[currentChain]) return;
     if (currency1.name !== "select") {
       const fn = async () => {
         var user = await getUserWallet();
+
         var w: WalletAddresses = [
           {
             address: user,
@@ -639,6 +646,8 @@ export const App = () => {
             parseFloat(all[0].amount.amount) /
             Math.pow(10, all[0].amount.decimals);
           console.log(details);
+        } else {
+          details.availableAmount = 0;
         }
       };
 
@@ -657,7 +666,7 @@ export const App = () => {
     // };
     // checkFlag();
     // console.log(currCurrency);
-  }, [currency1]);
+  }, [currency1, currentChain, details]);
 
   useEffect(() => {
     if (
@@ -686,13 +695,24 @@ export const App = () => {
     details.estimatedTimeInSeconds = [];
     details.totalFee = 0;
     details.totalTime = 0;
+    details.outputAmount = bestRoute?.result?.outputAmount || "0";
 
     bestRoute?.result?.swaps.map((item) => {
       item.fee.map((single_fee) => {
         details.fee.push(single_fee);
-        details.totalFee += parseFloat(single_fee.amount);
+        var temp = tokensMeta?.tokens.find(
+          (t) =>
+            t.blockchain === single_fee.asset.blockchain &&
+            t.symbol === single_fee.asset.symbol &&
+            t.address === single_fee.asset.address
+        );
+        if (temp && temp.usdPrice)
+          details.totalFee += parseFloat(single_fee.amount) * temp?.usdPrice;
       });
-      details.estimatedTimeInSeconds.push(item.estimatedTimeInSeconds);
+      details.estimatedTimeInSeconds.push({
+        time: item.estimatedTimeInSeconds,
+        type: item.swapperType,
+      });
       details.totalTime += item.estimatedTimeInSeconds;
     });
   }, [bestRoute]);
@@ -896,7 +916,12 @@ export const App = () => {
                   }}
                 >
                   <div className="amount font_base">
-                    {roundOff(ConversionRate * parseFloat(inputAmount), 2)}
+                    {roundOff(
+                      (parseFloat(currency1.usdPrice) /
+                        parseFloat(currency2.usdPrice)) *
+                        parseFloat(inputAmount),
+                      4
+                    )}
                   </div>
                   <div className="amount_deduction font_base">
                     ${roundOff(currency1.usdPrice * parseFloat(inputAmount), 4)}{" "}
@@ -995,7 +1020,7 @@ export const App = () => {
                     let count = index + 1;
                     return (
                       <div className="font_base rate__values">
-                        {"Swap " + count + ": " + item + " sec"}
+                        {"Swap [" + item.type + "]: " + item.time + " sec"}
                       </div>
                     );
                   })}

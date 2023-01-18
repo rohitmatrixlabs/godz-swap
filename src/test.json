@@ -1,0 +1,326 @@
+{
+  "bestRoute": {
+    "from": {
+      "blockchain": "BSC",
+      "symbol": "BNB",
+      "address": null
+    },
+    "to": {
+      "blockchain": "ETH",
+      "symbol": "ETH",
+      "address": null
+    },
+    "requestAmount": "0.00013137745843008",
+    "requestId": "26ace724-80b4-4a7a-9ba7-31008d59b423",
+    "result": {
+      "outputAmount": "0.000025840584964907",
+      "swaps": [
+        {
+          "swapperId": "PancakeSwapBsc",
+          "swapperType": "DEX",
+          "from": {
+            "symbol": "BNB",
+            "logo": "https://api.rango.exchange/i/Y3v1KW",
+            "address": null,
+            "blockchain": "BSC",
+            "decimals": 18,
+            "usdPrice": 303.67388946469276
+          },
+          "to": {
+            "symbol": "WETH",
+            "logo": "https://api.rango.exchange/i/wNnplE",
+            "address": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea",
+            "blockchain": "BSC",
+            "decimals": 18,
+            "usdPrice": 1533.2433326008675
+          },
+          "fromAmount": "0.000131377458430080",
+          "fromAmountPrecision": null,
+          "fromAmountMinValue": null,
+          "fromAmountMaxValue": null,
+          "fromAmountRestrictionType": null,
+          "toAmount": "0.000025850584964907",
+          "fee": [
+            {
+              "asset": {
+                "blockchain": "BSC",
+                "symbol": "BNB",
+                "address": null
+              },
+              "expenseType": "DECREASE_FROM_OUTPUT",
+              "amount": "0.000000788264750580480016409056417403533600918308366090059280395507812500000000",
+              "name": "Swapper Fee"
+            },
+            {
+              "asset": {
+                "blockchain": "BSC",
+                "symbol": "BNB",
+                "address": null
+              },
+              "expenseType": "FROM_SOURCE_WALLET",
+              "amount": "0.001179139278822440",
+              "name": "Network Fee"
+            }
+          ],
+          "estimatedTimeInSeconds": 75,
+          "swapChainType": "INTER_CHAIN",
+          "routes": [
+            {
+              "nodes": [
+                {
+                  "nodes": [
+                    {
+                      "marketName": "PancakeSwapBsc",
+                      "marketId": "PancakeSwapBsc",
+                      "percent": 1
+                    }
+                  ],
+                  "from": "WBNB",
+                  "fromLogo": "",
+                  "fromAddress": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+                  "fromBlockchain": "BSC",
+                  "to": "ETH",
+                  "toLogo": "",
+                  "toAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                  "toBlockchain": "BSC"
+                }
+              ]
+            },
+            {
+              "nodes": [
+                {
+                  "nodes": [
+                    {
+                      "marketName": "PancakeSwapBsc",
+                      "marketId": "PancakeSwapBsc",
+                      "percent": 1
+                    }
+                  ],
+                  "from": "ETH",
+                  "fromLogo": "",
+                  "fromAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                  "fromBlockchain": "BSC",
+                  "to": "WETH",
+                  "toLogo": "",
+                  "toAddress": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea",
+                  "toBlockchain": "BSC"
+                }
+              ]
+            }
+          ],
+          "recommendedSlippage": null,
+          "warnings": [],
+          "timeStat": {
+            "min": 9,
+            "avg": 61,
+            "max": 491
+          },
+          "includesDestinationTx": false,
+          "internalSwaps": null,
+          "maxRequiredSign": 1,
+          "fromAsset": {
+            "blockchain": "BSC",
+            "symbol": "BNB",
+            "address": null
+          },
+          "toAsset": {
+            "blockchain": "BSC",
+            "symbol": "WETH",
+            "address": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea"
+          }
+        },
+        {
+          "swapperId": "Wormhole",
+          "swapperType": "BRIDGE",
+          "from": {
+            "symbol": "WETH",
+            "logo": "https://api.rango.exchange/i/wNnplE",
+            "address": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea",
+            "blockchain": "BSC",
+            "decimals": 18,
+            "usdPrice": 1533.2433326008675
+          },
+          "to": {
+            "symbol": "WETH",
+            "logo": "https://api.rango.exchange/i/yZ9N1N",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "blockchain": "ETH",
+            "decimals": 18,
+            "usdPrice": 1579.3702565682863
+          },
+          "fromAmount": "0.000025850584964907",
+          "fromAmountPrecision": null,
+          "fromAmountMinValue": null,
+          "fromAmountMaxValue": null,
+          "fromAmountRestrictionType": null,
+          "toAmount": "0.000025840584964907",
+          "fee": [
+            {
+              "asset": {
+                "blockchain": "BSC",
+                "symbol": "BNB",
+                "address": null
+              },
+              "expenseType": "FROM_SOURCE_WALLET",
+              "amount": "0.001159253756000000",
+              "name": "Network Fee"
+            },
+            {
+              "asset": {
+                "blockchain": "BSC",
+                "symbol": "WETH",
+                "address": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea"
+              },
+              "expenseType": "DECREASE_FROM_OUTPUT",
+              "amount": "0.000000010000000000",
+              "name": "Swapper Fee"
+            }
+          ],
+          "estimatedTimeInSeconds": 240,
+          "swapChainType": "INTRA_CHAIN",
+          "routes": null,
+          "recommendedSlippage": null,
+          "warnings": [],
+          "timeStat": {
+            "min": 42,
+            "avg": 211,
+            "max": 10142
+          },
+          "includesDestinationTx": false,
+          "internalSwaps": null,
+          "maxRequiredSign": 1,
+          "fromAsset": {
+            "blockchain": "BSC",
+            "symbol": "WETH",
+            "address": "0x4db5a66e937a9f4473fa95b1caf1d1e1d62e29ea"
+          },
+          "toAsset": {
+            "blockchain": "ETH",
+            "symbol": "WETH",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+          }
+        },
+        {
+          "swapperId": "OneInchEth",
+          "swapperType": "DEX",
+          "from": {
+            "symbol": "WETH",
+            "logo": "https://api.rango.exchange/i/yZ9N1N",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "blockchain": "ETH",
+            "decimals": 18,
+            "usdPrice": 1579.3702565682863
+          },
+          "to": {
+            "symbol": "ETH",
+            "logo": "https://api.rango.exchange/i/MTyH5i",
+            "address": null,
+            "blockchain": "ETH",
+            "decimals": 18,
+            "usdPrice": 1582.497826517272
+          },
+          "fromAmount": "0.000025840584964907",
+          "fromAmountPrecision": null,
+          "fromAmountMinValue": null,
+          "fromAmountMaxValue": null,
+          "fromAmountRestrictionType": null,
+          "toAmount": "0.000025840584964907",
+          "fee": [
+            {
+              "asset": {
+                "blockchain": "ETH",
+                "symbol": "ETH",
+                "address": null
+              },
+              "expenseType": "FROM_SOURCE_WALLET",
+              "amount": "0.004120195200548924",
+              "name": "Network Fee"
+            }
+          ],
+          "estimatedTimeInSeconds": 75,
+          "swapChainType": "INTRA_CHAIN",
+          "routes": [
+            {
+              "nodes": [
+                {
+                  "nodes": [
+                    {
+                      "marketName": "WETH",
+                      "marketId": "WETH",
+                      "percent": 1
+                    }
+                  ],
+                  "from": "WETH",
+                  "fromLogo": "https://tokens.1inch.io/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png",
+                  "fromAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                  "fromBlockchain": "ETH",
+                  "to": "ETH",
+                  "toLogo": "https://tokens.1inch.io/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png",
+                  "toAddress": "",
+                  "toBlockchain": "ETH"
+                }
+              ]
+            }
+          ],
+          "recommendedSlippage": null,
+          "warnings": [],
+          "timeStat": {
+            "min": 10,
+            "avg": 75,
+            "max": 730
+          },
+          "includesDestinationTx": false,
+          "internalSwaps": null,
+          "maxRequiredSign": 1,
+          "fromAsset": {
+            "blockchain": "ETH",
+            "symbol": "WETH",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+          },
+          "toAsset": {
+            "blockchain": "ETH",
+            "symbol": "ETH",
+            "address": null
+          }
+        }
+      ],
+      "resultType": "OK"
+    },
+    "validationStatus": [
+      {
+        "blockchain": "BSC",
+        "wallets": [
+          {
+            "address": "0xa1F3494F369de192D28C18fbdd7CeF2BB41A81CC",
+            "requiredAssets": [
+              {
+                "asset": {
+                  "blockchain": "BSC",
+                  "symbol": "BNB",
+                  "address": null
+                },
+                "requiredAmount": {
+                  "amount": "2469770493252520",
+                  "decimals": 18
+                },
+                "currentAmount": {
+                  "amount": "16131377458430079",
+                  "decimals": 18
+                },
+                "reason": "FEE_AND_INPUT_ASSET",
+                "ok": true
+              }
+            ],
+            "addressIsValid": true,
+            "validResult": true
+          }
+        ]
+      }
+    ],
+    "walletNotSupportingFromBlockchain": false,
+    "processingLimitReached": false,
+    "missingBlockchains": ["ETH"],
+    "diagnosisMessages": [],
+    "compareStatus": "NOTHING_TO_COMPARE"
+  }
+}
