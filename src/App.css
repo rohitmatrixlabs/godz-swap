@@ -1431,7 +1431,11 @@ body.active-modal {
   left: 50%;
   transform: translate(-50%, -50%);
   line-height: 1.4;
-  background: #f1f1f1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28) -16.91%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
   padding: 14px 28px;
   border-radius: 20px;
   max-width: 600px;
@@ -1439,6 +1443,7 @@ body.active-modal {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  backdrop-filter: blur(25px);
 }
 
 .wrapper {
@@ -1446,11 +1451,11 @@ body.active-modal {
 }
 
 .wrapper .search-input {
-  background: #fff;
+  background: transparent;
   width: 100%;
   border-radius: 5px;
   position: relative;
-  box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
+  /* box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12); */
 }
 
 .search-input input {
@@ -1461,11 +1466,25 @@ body.active-modal {
   border-radius: 5px;
   padding: 0 60px 0 20px;
   font-size: 18px;
-  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1); */
 }
 
 .search-input.active input {
-  border-radius: 5px 5px 0 0;
+  border-radius: 5px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  margin-bottom: 1rem;
+  caret-color: white;
+  color: white;
+}
+
+.search-input.active input::placeholder {
+  text-align: start;
+  color: rgba(255, 255, 255, 0.22);
+  font-family: MicroSquare;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.06em;
 }
 
 .search-input .autocom-box {
@@ -1477,25 +1496,62 @@ body.active-modal {
 }
 
 .search-input.active .autocom-box {
-  padding: 10px 8px;
+  /* padding: 2px 8px; */
+  padding-right: 8px;
   opacity: 1;
   pointer-events: auto;
 }
 
 .autocom-box li {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) -16.91%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
   list-style: none;
   padding: 8px 12px;
   display: none;
-  width: 100%;
+  width: fill;
   cursor: default;
   border-radius: 3px;
+  margin: 5px 0px 5px 0px;
+  color: white;
+  height: 30%;
 }
+
+.autocom-box::-webkit-scrollbar {
+  width: 20px;
+}
+
+/* Track */
+.autocom-box::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+/* Handle */
+.autocom-box::-webkit-scrollbar-thumb {
+  background: gray;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+.autocom-box::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+/* .autocom-box::-webkit-scrollbar-button {
+  background-color: rgb(64, 64, 64);
+
+  display: block;
+  background-size: 10px;
+  background-repeat: no-repeat;
+} */
 
 .search-input.active .autocom-box li {
   display: block;
 }
 .autocom-box li:hover {
-  background: #efefef;
+  background: rgba(98, 97, 97, 0.16)
 }
 
 .search-input .icon {
@@ -1540,4 +1596,51 @@ body.active-modal {
 
 .search-inner {
   display: flex;
+}
+
+.dropDown {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1.4;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28) -16.91%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
+  padding: 14px 28px;
+  border-radius: 20px;
+  max-width: 600px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(25px);
+  /* scroll-snap-type: y mandatory; */
+  overflow-y: auto;
+}
+
+.dropDownWrapper {
+  background-color: transparent !important;
+}
+.dropDownInput {
+  background-color: transparent !important;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  height: 55px;
+  width: 100%;
+  border-radius: 5px;
+  padding: 0 60px 0 20px;
+  font-size: 18px;
+  /* box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1); */
+}
+
+.dropDownInput::placeholder {
+  color: rgba(255, 255, 255, 0.22);
+  text-align: start;
+}
+
+.dropDownList {
+  max-height: 100px;
 }

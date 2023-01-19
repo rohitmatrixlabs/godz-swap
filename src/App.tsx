@@ -197,7 +197,7 @@ export const App = () => {
     }
     let temp = tokensMeta?.tokens
       .filter((item) => {
-        if (value === "") return true;
+        // if (value === "") return true;
         const searchTerm = value.toLowerCase();
         var fullName = "";
         var blockchain = "";
@@ -208,9 +208,7 @@ export const App = () => {
         } else {
           return false;
         }
-        return (
-          searchTerm && fullName.includes(searchTerm) && blockchain === network
-        );
+        return fullName.includes(searchTerm) && blockchain === network;
       })
       .map((item) => (
         <li onClick={() => onSearch(item)} key={item.address}>
@@ -228,11 +226,11 @@ export const App = () => {
 
     let temp = Object.entries(chains)
       .filter(([key, value]: any) => {
-        if (value2 === "") return true;
+        // if (value2 === "") return true;
         var fullName = value.toLowerCase();
         var term = value2.toLowerCase();
         // console.log(key, value);
-        return value2 && fullName.includes(term);
+        return fullName.includes(term);
       })
       .map(([key, value]: any) => {
         // console.log(key);
