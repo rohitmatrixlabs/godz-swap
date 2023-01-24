@@ -114,6 +114,7 @@ export const App = () => {
   const [ConversionRate, setConversionRate] = useState<number>(0);
   const [connected, setConnected] = useState<boolean>(false);
   const [signer, setSigner] = useState<any>();
+  const [doExecution, setDoExecution] = useState<boolean>(false);
 
   const onChange = (event: any) => {
     setValue(event.target.value);
@@ -156,12 +157,19 @@ export const App = () => {
   // window.ethereum.on("disconnect", signerDisconnect);
 
   useEffect(() => {
-    getUserWallet().then((user) => {
-      setSigner(user);
-    });
-    provider.getNetwork().then((network) => {
-      setCurrentChain(network.chainId);
-    });
+    // getUserWallet().then((user) => {
+    //   setSigner(user);
+    // });
+
+    const fn = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      var temp = await provider.getSigner().getAddress();
+      setSigner(temp);
+      provider.getNetwork().then((network) => {
+        setCurrentChain(network.chainId);
+      });
+    };
+    fn();
   }, []);
 
   useEffect(() => {}, [signer]);
@@ -211,7 +219,7 @@ export const App = () => {
         return fullName.includes(searchTerm) && blockchain === network;
       })
       .map((item) => (
-        <li onClick={() => onSearch(item)} key={item.address}>
+        <li onClick={() => onSearch(item)} key={item.address + item.blockchain}>
           {item.name}
         </li>
       ));
@@ -241,7 +249,7 @@ export const App = () => {
               onClick={() => {
                 toggleModal2();
                 if (activeNetwork === 1) {
-                  switchNetwork(key);
+                  // switchNetwork(key);
                   setNetwork1(key);
                 } else setNetwork2(key);
               }}
@@ -266,7 +274,27 @@ export const App = () => {
   // });
 
   window.ethereum.on("networkChanged", function (networkId: any) {
+    console.log(
+      "here i am",
+      parseInt(networkId),
+      bestRoute,
+      doExecution,
+      readyToExeccute,
+      network1
+    );
+    if (
+      doExecution &&
+      readyToExeccute &&
+      bestRoute !== undefined &&
+      bestRoute !== null &&
+      network1 === parseInt(networkId)
+    ) {
+      setDoExecution(false);
+      console.log("here we go", networkId, bestRoute);
+      executeRoute(bestRoute);
+    }
     setCurrentChain(networkId);
+
     // Time to reload your interface with networks[0]!);
 
     // Time to reload your interface with the new networkId
@@ -285,65 +313,83 @@ export const App = () => {
     setTxStatus(null);
     setRequiredAssets([]);
     let userAddress = "";
-    try {
-      userAddress = await getUserWallet();
-    } catch (err) {
-      setError(
-        "Error connecting to MetMask. Please check Metamask and try again."
-      );
-      notyf.error(
-        "Error connecting to MetMask. Please check Metamask and try again."
-      );
+    // try {
+    //   userAddress = await getUserWallet();
+    // } catch (err) {
+    //   setError(
+    //     "Error connecting to MetMask. Please check Metamask and try again."
+    //   );
+    //   notyf.error(
+    //     "Error connecting to MetMask. Please check Metamask and try again."
+    //   );
 
-      return;
-    }
+    //   return;
+    // }
 
-    if (!window.ethereum.isConnected()) {
-      notyf.error(
-        "Error connecting to MetMask. Please check Metamask and try again."
-      );
+    // if (!window.ethereum.isConnected()) {
+    //   notyf.error(
+    //     "Error connecting to MetMask. Please check Metamask and try again."
+    //   );
 
-      setError(
-        "Error connecting to MetMask. Please check Metamask and try again."
-      );
-      return;
-    }
+    //   setError(
+    //     "Error connecting to MetMask. Please check Metamask and try again."
+    //   );
+    //   return;
+    // }
 
     // it multi swap example, you should check chain id before each evm swap
     // if (window.ethereum.chainId && parseInt(window.ethereum.chainId) !== 137) {
     //   setError(`Change meta mask network to 'Polygon'.`);
     //   return;
     // }
-    if (currentChain !== network1) {
-      switchNetwork(network1);
-      notyf.error("change network and try again");
-      return;
-    }
+    // if (currentChain !== network1) {
+    //   // switchNetwork(network1);
+    //   notyf.error("change network and try again");
+    //   return;
+    // }
 
-    if (!userAddress) {
-      setError(`Could not get wallet address.`);
-      notyf.error("Could not get wallet address.");
+    // if (!userAddress) {
+    //   setError(`Could not get wallet address.`);
+    //   notyf.error("Could not get wallet address.");
 
-      return;
-    }
+    //   return;
+    // }
     if (!inputAmount) {
       notyf.error("Set input amount");
 
       setError(`Set input amount`);
+      setLoadingSwap(false);
       return;
     }
-    if (!currency1 || !currency2) return;
+    if (!currency1 || !currency2) {
+      setLoadingSwap(false);
+      return;
+    }
 
     setLoadingSwap(true);
-    const connectedWallets = [
-      {
-        blockchain: chains[currentChain].toUpperCase(),
-        addresses: [userAddress],
-      },
-    ];
-    const selectedWallets = {
-      [chains[currentChain].toUpperCase()]: userAddress,
-    };
+    let selectedWallets = {};
+    let connectedWallets = [];
+    if (signer) {
+      selectedWallets = {
+        [currency1.blockchain]: signer,
+        [currency2.blockchain]: signer,
+      };
+
+      connectedWallets = [
+        {
+          blockchain: currency1.blockchain,
+          addresses: [signer],
+        },
+      ];
+    } else {
+      connectedWallets = [
+        {
+          blockchain: currency1.blockchain,
+          addresses: [],
+        },
+      ];
+    }
+
     const from = {
       blockchain: currency1?.blockchain,
       symbol: currency1?.symbol,
@@ -384,6 +430,11 @@ export const App = () => {
       return;
     }
 
+    if (bestRoute.validationStatus?.length === 0) {
+      setLoadingSwap(false);
+      return;
+    }
+
     const requiredCoins =
       bestRoute.validationStatus?.flatMap((v) =>
         v.wallets.flatMap((w) => w.requiredAssets)
@@ -401,12 +452,14 @@ export const App = () => {
     } else if (bestRoute) {
       setReadyToExecute(true);
       setLoadingSwap(false);
+      notyf.success("Found best Route");
       // await executeRoute(bestRoute);
     }
   };
 
   const executeRoute = async (routeResponse: BestRouteResponse) => {
     setLoadingSwap(true);
+    setDoExecution(false);
     const provider = await new ethers.providers.Web3Provider(
       window.ethereum as any
     );
@@ -528,7 +581,7 @@ export const App = () => {
         return blockchain === network;
       })
       .map((item) => (
-        <li onClick={() => onSearch(item)} key={item.address}>
+        <li onClick={() => onSearch(item)} key={item.address + item.blockchain}>
           {item.name}
         </li>
       ));
@@ -543,7 +596,7 @@ export const App = () => {
             onClick={() => {
               toggleModal2();
               if (activeNetwork === 1) {
-                switchNetwork(key);
+                // switchNetwork(key);
                 setNetwork1(key);
               } else setNetwork2(key);
             }}
@@ -620,42 +673,47 @@ export const App = () => {
     }
   }, [network1]);
 
-  var toma = new Set();
-  tokensMeta?.tokens.map((token) => {
-    toma.add(token.blockchain);
-  });
-  console.log(toma);
+  // var toma = new Set();
+  // tokensMeta?.tokens.map((token) => {
+  //   toma.add(token.blockchain);
+  // });
+  // console.log(toma);
+
+  const walletConnectCall = async () => {
+    if (!signer) return;
+
+    var user = await getUserWallet();
+
+    var w: WalletAddresses = [
+      {
+        address: user,
+        blockchain: currency1.blockchain.toUpperCase(),
+      },
+    ];
+    let temp = await rangoClient.getWalletsDetails(w);
+    let all = temp.wallets[0].balances?.filter((item) => {
+      return item.asset.address === currency1.address;
+    });
+    if (all?.length === 1) {
+      // console.log(all[0].amount.amount);
+
+      details.availableAmount =
+        parseFloat(all[0].amount.amount) / Math.pow(10, all[0].amount.decimals);
+      console.log(details);
+    } else {
+      details.availableAmount = 0;
+    }
+  };
 
   useEffect(() => {
     setLoadingCurrency(true);
+    console.log("lol");
+
     if (!chains[currentChain]) return;
     if (currency1.name !== "select") {
-      const fn = async () => {
-        var user = await getUserWallet();
+      console.log("lol f");
 
-        var w: WalletAddresses = [
-          {
-            address: user,
-            blockchain: chains[currentChain].toUpperCase(),
-          },
-        ];
-        let temp = await rangoClient.getWalletsDetails(w);
-        let all = temp.wallets[0].balances?.filter((item) => {
-          return item.asset.address === currency1.address;
-        });
-        if (all?.length === 1) {
-          // console.log(all[0].amount.amount);
-
-          details.availableAmount =
-            parseFloat(all[0].amount.amount) /
-            Math.pow(10, all[0].amount.decimals);
-          console.log(details);
-        } else {
-          details.availableAmount = 0;
-        }
-      };
-
-      fn();
+      walletConnectCall();
       setLoadingCurrency(false);
     }
     // const checkFlag = () => {
@@ -670,7 +728,7 @@ export const App = () => {
     // };
     // checkFlag();
     // console.log(currCurrency);
-  }, [currency1, currentChain, details]);
+  }, [currency1, details, signer]);
 
   useEffect(() => {
     if (
@@ -692,7 +750,7 @@ export const App = () => {
           fn();
         });
     }
-  }, [currency1, currency2, inputAmount, currentChain]);
+  }, [currency1, currency2, inputAmount]);
 
   useEffect(() => {
     details.fee = t;
@@ -736,7 +794,16 @@ export const App = () => {
 
     setLoadingSwap(true);
     if (readyToExeccute && bestRoute !== undefined && bestRoute !== null) {
-      await executeRoute(bestRoute);
+      console.log("here", bestRoute, currentChain);
+
+      if (chains[currentChain] === currency1.blockchain.toLowerCase()) {
+        await executeRoute(bestRoute);
+      } else {
+        setDoExecution(true);
+        switchNetwork(network1);
+      }
+    } else {
+      setLoadingSwap(false);
     }
   };
   const roundOff = (val: number, decimal: number) => {
@@ -755,14 +822,16 @@ export const App = () => {
   const handleConnect = () => {
     // setTicker(!ticker);
     const fn = async () => {
-      var user = await getUserWallet();
-      var w: WalletAddresses = [
-        {
-          address: user,
-          blockchain: chains[currentChain],
-        },
-      ];
-      let temp = await rangoClient.getWalletsDetails(w);
+      var user = await getUserWallet().then((user) => {
+        setSigner(user);
+      });
+      // var w: WalletAddresses = [
+      //   {
+      //     address: user,
+      //     blockchain: chains[currentChain],
+      //   },
+      // ];
+      // let temp = await rangoClient.getWalletsDetails(w);
     };
 
     fn();
@@ -865,16 +934,18 @@ export const App = () => {
                   <input
                     value={inputAmount}
                     className="amount font_base"
-                    placeholder="0.01"
+                    placeholder="Amount"
+                    type="number"
                     onChange={(event) => {
                       setInputAmount(event.target.value.toString());
                     }}
                   />
-                  <div className="amount_deduction font_base">
-                    -{roundOff(parseFloat(inputAmount) * currency1.usdPrice, 2)}
-                    $
-                  </div>
                 </div>
+              </div>
+              <div className="amount_deduction font_base">
+                -
+                {roundOff(parseFloat(inputAmount) * currency1.usdPrice, 2) || 0}
+                $
               </div>
               <div className="font_base wallet">ERC20</div>
             </div>
@@ -931,15 +1002,17 @@ export const App = () => {
                         parseFloat(currency2.usdPrice)) *
                         parseFloat(inputAmount),
                       4
-                    )}
+                    ) || 0}
                   </div>
-                  <div className="amount_deduction font_base">
-                    ${roundOff(currency1.usdPrice * parseFloat(inputAmount), 4)}{" "}
-                  </div>
+
                   {/* <div className="amount_deduction font_base token">
                     {currency2.symbol}
                   </div> */}
                 </div>
+              </div>
+              <div className="amount_deduction font_base">
+                $
+                {roundOff(currency1.usdPrice * parseFloat(inputAmount), 4) || 0}{" "}
               </div>
               <div className="font_base wallet">ERC20</div>
             </div>
@@ -1062,7 +1135,7 @@ export const App = () => {
           ) : (
             <button
               className="swap_button font_base"
-              disabled={loadingSwap || !readyToExeccute}
+              disabled={loadingSwap}
               onClick={handleExecution}
             >
               Swap

@@ -1103,9 +1103,19 @@ button:hover {
 *:focus {
   outline: none;
 }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 
 .amount {
-  font-size: 40px;
+  font-size: 30px;
   line-height: 45px;
   background-color: transparent;
   border: none;
@@ -1136,7 +1146,7 @@ button:hover {
   align-items: center;
   flex-direction: row;
   padding-top: 10px;
-  margin-bottom: 7px;
+  margin-bottom: 2px;
 }
 
 .wallet {
@@ -1551,7 +1561,7 @@ body.active-modal {
   display: block;
 }
 .autocom-box li:hover {
-  background: rgba(98, 97, 97, 0.16)
+  background: rgba(98, 97, 97, 0.16);
 }
 
 .search-input .icon {
