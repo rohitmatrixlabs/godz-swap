@@ -1496,6 +1496,12 @@ body.active-modal {
   font-weight: 400;
   letter-spacing: 0.06em;
 }
+.autocom-box {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-around;
+}
 
 .search-input .autocom-box {
   padding: 0;
@@ -1512,7 +1518,7 @@ body.active-modal {
   pointer-events: auto;
 }
 
-.autocom-box li {
+.autocom-box div {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.45) -16.91%,
@@ -1527,6 +1533,8 @@ body.active-modal {
   margin: 5px 0px 5px 0px;
   color: white;
   height: 30%;
+  min-height: 30px;
+  width: 42%;
 }
 
 .autocom-box::-webkit-scrollbar {
@@ -1557,10 +1565,17 @@ body.active-modal {
   background-repeat: no-repeat;
 } */
 
-.search-input.active .autocom-box li {
+.search-input.active {
   display: block;
 }
-.autocom-box li:hover {
+
+.autocom-box div {
+  display: flex;
+  flex-direction: row;
+  column-gap: 5px;
+}
+
+.autocom-box div:hover {
   background: rgba(98, 97, 97, 0.16);
 }
 
