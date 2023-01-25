@@ -1050,6 +1050,12 @@ button:hover {
   flex-direction: row;
 }
 
+.network_img {
+  height: 37px;
+  width: 37px;
+  margin-right: 5px;
+}
+
 .currency_img {
   height: 47px;
   width: 47px;
@@ -1059,6 +1065,10 @@ button:hover {
   .currency_img {
     height: 32px;
     width: 32px;
+  }
+  .network_img {
+    height: 22px;
+    width: 22px;
   }
 }
 @media (max-width: 1000px) {
@@ -1537,7 +1547,6 @@ body.active-modal {
   min-height: 30px;
   width: 42%;
   overflow: hidden;
-  
 }
 
 @media (max-width: 768px) {

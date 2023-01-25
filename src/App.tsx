@@ -47,6 +47,11 @@ export const App = () => {
     ["245022934", "solana"],
     ["56", "bsc"],
   ]);
+  const emptyChain = {
+    name: "select",
+    address: "",
+    logo: "",
+  };
 
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -56,8 +61,8 @@ export const App = () => {
   const [tokensMeta, setTokenMeta] = useState<MetaResponse | null>();
   const [inputAmount, setInputAmount] = useState<string>("0.01");
   const [bestRoute, setBestRoute] = useState<BestRouteResponse | null>();
-  const [network1, setNetwork1] = useState<any>(56);
-  const [network2, setNetwork2] = useState<any>(56);
+  const [network1, setNetwork1] = useState<any>(emptyChain);
+  const [network2, setNetwork2] = useState<any>(emptyChain);
   const [activeNetwork, setActiveNetwork] = useState<number | string>();
   const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(
     null
@@ -96,6 +101,7 @@ export const App = () => {
     address: "",
     usdPrice: 0,
   };
+
   const [currency1, setCurrency1] = useState<any>(emptyToken);
 
   const [currency2, setCurrency2] = useState<any>(emptyToken);
@@ -115,6 +121,7 @@ export const App = () => {
   const [connected, setConnected] = useState<boolean>(false);
   const [signer, setSigner] = useState<any>();
   const [doExecution, setDoExecution] = useState<boolean>(false);
+  const [chainMeta, setChainMeta] = useState<any>();
 
   const onChange = (event: any) => {
     setValue(event.target.value);
@@ -137,7 +144,7 @@ export const App = () => {
   const onSearch = (searchTerm: any) => {
     setValue("");
     setSearch_style("search-input active");
-    console.log(searchTerm);
+    // console.log(searchTerm);
     toggleModal();
     setLoadingCurrency(false);
     if (currId == 1) {
@@ -166,7 +173,17 @@ export const App = () => {
       var temp = await provider.getSigner().getAddress();
       setSigner(temp);
       provider.getNetwork().then((network) => {
-        setCurrentChain(network.chainId);
+        var temp1 = tokensMeta?.blockchains.find((c) => {
+          // console.log(c);
+
+          return c.chainId === toHex(network.chainId);
+        });
+        // console.log("gt", tokensMeta?.blockchains);
+
+        if (temp1) {
+          // console.log(temp1);
+          setCurrentChain(temp1);
+        }
       });
     };
     fn();
@@ -175,25 +192,41 @@ export const App = () => {
   useEffect(() => {}, [signer]);
   useEffect(() => {
     setLoadingMeta(true);
-    console.log(currentChain);
+    // console.log(currentChain);
 
     // Meta provides all blockchains, tokens and swappers information supported by Rango
     rangoClient.getAllMetadata().then((meta) => {
       setTokenMeta(meta);
       var temp = meta?.tokens.find(
         (t) =>
-          t.blockchain.toLowerCase() === chains[network1] &&
+          t.blockchain.toLowerCase() === network1.name &&
           t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
       );
-
       if (temp) setCurrency1(temp);
 
       var temp2 = meta?.tokens.find(
         (t) =>
-          t.blockchain.toLowerCase() === chains[network2] &&
+          t.blockchain.toLowerCase() === network2.name &&
           t.address === "0xe9e7cea3dedca5984780bafc599bd69add087d56"
       );
       if (temp2) setCurrency2(temp2);
+
+      var temp3 = meta?.blockchains.find((c) => c.name === "BSC");
+      // console.log(temp3);
+
+      setNetwork1(temp3);
+      setNetwork2(temp3);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      provider.getNetwork().then((network) => {
+        var temp1 = meta?.blockchains.find((c) => {
+          return c.chainId === toHex(network.chainId);
+        });
+        // console.log("gt", tokensMeta?.blockchains);
+
+        if (temp1) {
+          setCurrentChain(temp1);
+        }
+      });
 
       setLoadingMeta(false);
     });
@@ -209,10 +242,10 @@ export const App = () => {
         const searchTerm = value.toLowerCase();
         var fullName = "";
         var blockchain = "";
-        var network = currId === 1 ? chains[network1] : chains[network2];
+        var network = currId === 1 ? network1.name : network2.name;
         if (item.name !== null) {
           fullName = item.name.toLowerCase();
-          blockchain = item.blockchain.toLowerCase();
+          blockchain = item.blockchain;
         } else {
           return false;
         }
@@ -235,17 +268,17 @@ export const App = () => {
     if (tokensMeta === undefined) {
       return;
     }
-    console.log("useEffect");
+    // console.log("useEffect");
 
-    let temp = Object.entries(chains)
-      .filter(([key, value]: any) => {
+    let temp = tokensMeta?.blockchains
+      .filter((chain: any) => {
         // if (value2 === "") return true;
-        var fullName = value.toLowerCase();
+        var fullName = chain.name.toLowerCase();
         var term = value2.toLowerCase();
         // console.log(key, value);
-        return fullName.includes(term);
+        return fullName.includes(term) && chain.type === "EVM";
       })
-      .map(([key, value]: any) => {
+      .map((chain: any) => {
         // console.log(key);
 
         if (true) {
@@ -256,12 +289,13 @@ export const App = () => {
                 toggleModal2();
                 if (activeNetwork === 1) {
                   // switchNetwork(key);
-                  setNetwork1(key);
-                } else setNetwork2(key);
+                  setNetwork1(chain);
+                } else setNetwork2(chain);
               }}
-              key={key}
+              key={chain.chainId}
             >
-              <li>{value}</li>
+              <img src={chain.logo} style={{ height: "20px", width: "20px" }} />
+              <li>{chain.name}</li>
             </div>
           );
         }
@@ -280,26 +314,30 @@ export const App = () => {
   // });
 
   window.ethereum.on("networkChanged", function (networkId: any) {
-    console.log(
-      "here i am",
-      parseInt(networkId),
-      bestRoute,
-      doExecution,
-      readyToExeccute,
-      network1
-    );
+    // console.log(
+    //   "here i am",
+    //   parseInt(networkId),
+    //   bestRoute,
+    //   doExecution,
+    //   readyToExeccute,
+    //   network1,
+    //   toHex(networkId)
+    // );
     if (
       doExecution &&
       readyToExeccute &&
       bestRoute !== undefined &&
       bestRoute !== null &&
-      network1 === parseInt(networkId)
+      network1.chainId === toHex(networkId)
     ) {
       setDoExecution(false);
-      console.log("here we go", networkId, bestRoute);
+      // console.log("here we go", networkId, bestRoute);
       executeRoute(bestRoute);
     }
-    setCurrentChain(networkId);
+    var temp = tokensMeta?.blockchains.find(
+      (c) => c.chainId === toHex(networkId)
+    );
+    setCurrentChain(temp);
 
     // Time to reload your interface with networks[0]!);
 
@@ -466,6 +504,8 @@ export const App = () => {
   const executeRoute = async (routeResponse: BestRouteResponse) => {
     setLoadingSwap(true);
     setDoExecution(false);
+    console.log("here");
+
     const provider = await new ethers.providers.Web3Provider(
       window.ethereum as any
     );
@@ -556,13 +596,13 @@ export const App = () => {
     setCurrId(1);
 
     toggleModal();
-    console.log(currCurrency);
+    // console.log(currCurrency);
   };
 
   const handleCurrency__2 = () => {
     setCurrId(2);
     toggleModal();
-    console.log(currCurrency);
+    // console.log(currCurrency);
   };
   const toggleModal = () => {
     setModal(!modal);
@@ -578,9 +618,9 @@ export const App = () => {
         var blockchain = "";
         // console.log(item, currId);
 
-        var network = currId === 1 ? chains[network1] : chains[network2];
+        var network = currId === 1 ? network1.name : network2.name;
         if (item.name !== null) {
-          blockchain = item.blockchain.toLowerCase();
+          blockchain = item.blockchain;
         } else {
           return false;
         }
@@ -600,25 +640,30 @@ export const App = () => {
   }, [modal]);
 
   useEffect(() => {
-    let temp = Object.entries(chains).map(([key, value]: any) => {
-      if (true) {
-        return (
-          <div
-            className=""
-            onClick={() => {
-              toggleModal2();
-              if (activeNetwork === 1) {
-                // switchNetwork(key);
-                setNetwork1(key);
-              } else setNetwork2(key);
-            }}
-            key={key}
-          >
-            <li>{value}</li>
-          </div>
-        );
-      }
-    });
+    let temp = tokensMeta?.blockchains
+      .filter((chain) => {
+        return chain.type === "EVM";
+      })
+      .map((chain: any) => {
+        if (true) {
+          return (
+            <div
+              className=""
+              onClick={() => {
+                toggleModal2();
+                if (activeNetwork === 1) {
+                  // switchNetwork(key);
+                  setNetwork1(chain);
+                } else setNetwork2(chain);
+              }}
+              key={chain.chainId}
+            >
+              <img src={chain.logo} style={{ height: "20px", width: "20px" }} />
+              <li>{chain.name}</li>
+            </div>
+          );
+        }
+      });
     setSearch(temp);
   }, [modal2]);
 
@@ -650,20 +695,18 @@ export const App = () => {
   useEffect(() => {
     var temp2 = tokensMeta?.tokens.find(
       (t) =>
-        t.blockchain.toLowerCase() === chains[network2] &&
+        t.blockchain === network2.name &&
         t.address === "0xe9e7cea3dedca5984780bafc599bd69add087d56"
     );
     if (temp2) {
       setCurrency2(temp2);
     } else {
-      temp2 = tokensMeta?.tokens.find(
-        (t) => t.blockchain.toLowerCase() === chains[network2]
-      );
+      temp2 = tokensMeta?.tokens.find((t) => t.blockchain === network2.name);
       // console.log(temp2);
 
       if (temp2) setCurrency2(temp2);
     }
-    console.log(currentChain, "useeffect");
+    // console.log(currentChain, "useeffect");
   }, [network2]);
 
   useEffect(() => {
@@ -671,16 +714,14 @@ export const App = () => {
 
     var temp = tokensMeta?.tokens.find(
       (t) =>
-        t.blockchain.toLowerCase() === chains[network1] &&
+        t.blockchain === network1.name &&
         t.address === "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
     );
 
     if (temp) {
       setCurrency1(temp);
     } else {
-      temp = tokensMeta?.tokens.find(
-        (t) => t.blockchain.toLowerCase() === chains[network1]
-      );
+      temp = tokensMeta?.tokens.find((t) => t.blockchain === network1.name);
       // console.log(temp2);
 
       if (temp) setCurrency1(temp);
@@ -713,7 +754,7 @@ export const App = () => {
 
       details.availableAmount =
         parseFloat(all[0].amount.amount) / Math.pow(10, all[0].amount.decimals);
-      console.log(details);
+      // console.log(details);
     } else {
       details.availableAmount = 0;
     }
@@ -721,11 +762,11 @@ export const App = () => {
 
   useEffect(() => {
     setLoadingCurrency(true);
-    console.log("lol");
+    // console.log("lol");
 
-    if (!chains[currentChain]) return;
+    // if (!chains[currentChain]) return;
     if (currency1.name !== "select") {
-      console.log("lol f");
+      // console.log("lol f");
 
       walletConnectCall();
       setLoadingCurrency(false);
@@ -745,11 +786,7 @@ export const App = () => {
   }, [currency1, details, signer]);
 
   useEffect(() => {
-    if (
-      currency1.name !== "select" &&
-      currency2.name !== "select" &&
-      inputAmount !== "0"
-    ) {
+    if (currency1.name !== "select" && currency2.name !== "select") {
       const fn = async () => {
         await currency1?.image;
         await currency2?.image;
@@ -805,17 +842,18 @@ export const App = () => {
   };
 
   const handleExecution = async () => {
-    console.log("why");
+    // console.log("why");
 
     setLoadingSwap(true);
     if (readyToExeccute && bestRoute !== undefined && bestRoute !== null) {
-      console.log("here", bestRoute, currentChain);
+      // console.log("here", bestRoute, currentChain);
 
-      if (chains[currentChain] === currency1.blockchain.toLowerCase()) {
+      if (currentChain.name === currency1.blockchain) {
         await executeRoute(bestRoute);
+        // console.log("i am in");
       } else {
         setDoExecution(true);
-        switchNetwork(network1);
+        switchNetwork(network1.chainId);
       }
     } else {
       setLoadingSwap(false);
@@ -853,22 +891,22 @@ export const App = () => {
   };
   function toHex(d: any) {
     var i = parseInt(d);
-    console.log(
-      "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString()
-    );
+    // console.log(
+    //   "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString()
+    // );
 
     return "0x" + Number(d).toString(16).slice(-2).toUpperCase().toString();
   }
 
-  const switchNetwork = async (key: string) => {
+  const switchNetwork = async (val: string) => {
     try {
-      var val = toHex(key);
+      // var val = toHex(key);
       window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: val }], // chainId must be in HEX with 0x in front
       });
     } catch (e) {
-      console.log("w");
+      // console.log("w");
     }
   };
 
@@ -918,9 +956,8 @@ export const App = () => {
               </div>
               <div className="currency" onClick={handleNetwork__1}>
                 <div className="currency__option">
-                  <div className="font_base currency_name">
-                    {chains[network1].toUpperCase()}
-                  </div>
+                  <img src={network1?.logo} className="network_img" />
+                  <div className="font_base currency_name">{network1.name}</div>
                 </div>
                 <img src={arrowDown} className="toggleArrow"></img>
               </div>
@@ -985,9 +1022,9 @@ export const App = () => {
               </div>
               <div className="currency" onClick={handleNetwork__2}>
                 <div className="currency__option">
-                  <div className="font_base currency_name">
-                    {chains[network2].toUpperCase()}
-                  </div>
+                  <img src={network2?.logo} className="network_img" />
+
+                  <div className="font_base currency_name">{network2.name}</div>
                 </div>
                 <img src={arrowDown} className="toggleArrow"></img>
               </div>
@@ -1028,12 +1065,14 @@ export const App = () => {
                 ) || 0}{" "}
                 <span className="downGrade">
                   (
-                  {roundOff(
-                    (currency2.usdPrice * parseFloat(details.outputAmount) -
-                      currency1.usdPrice * parseFloat(inputAmount)) /
-                      (currency1.usdPrice * parseFloat(inputAmount)),
-                    2
-                  ) || 0}
+                  {inputAmount
+                    ? roundOff(
+                        (currency2.usdPrice * parseFloat(details.outputAmount) -
+                          currency1.usdPrice * parseFloat(inputAmount)) /
+                          (currency1.usdPrice * parseFloat(inputAmount)),
+                        2
+                      ) || 0
+                    : 0}
                   % )
                 </span>
               </div>
