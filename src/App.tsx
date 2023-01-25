@@ -219,14 +219,13 @@ export const App = () => {
         return fullName.includes(searchTerm) && blockchain === network;
       })
       .map((item) => (
-        <div className="">
+        <div
+          className=""
+          onClick={() => onSearch(item)}
+          key={item.address + item.blockchain}
+        >
           <img src={item.image} style={{ height: "20px", width: "20px" }} />
-          <li
-            onClick={() => onSearch(item)}
-            key={item.address + item.blockchain}
-          >
-            {item.name}
-          </li>
+          <li>{item.name}</li>
         </div>
       ));
     setSearch(temp);
@@ -251,19 +250,18 @@ export const App = () => {
 
         if (true) {
           return (
-            <div className="">
-              <li
-                onClick={() => {
-                  toggleModal2();
-                  if (activeNetwork === 1) {
-                    // switchNetwork(key);
-                    setNetwork1(key);
-                  } else setNetwork2(key);
-                }}
-                key={key}
-              >
-                {value}
-              </li>
+            <div
+              className=""
+              onClick={() => {
+                toggleModal2();
+                if (activeNetwork === 1) {
+                  // switchNetwork(key);
+                  setNetwork1(key);
+                } else setNetwork2(key);
+              }}
+              key={key}
+            >
+              <li>{value}</li>
             </div>
           );
         }
@@ -589,14 +587,13 @@ export const App = () => {
         return blockchain === network;
       })
       .map((item) => (
-        <div className="">
+        <div
+          className=""
+          onClick={() => onSearch(item)}
+          key={item.address + item.blockchain}
+        >
           <img src={item.image} style={{ height: "20px", width: "20px" }} />
-          <li
-            onClick={() => onSearch(item)}
-            key={item.address + item.blockchain}
-          >
-            {item.name}
-          </li>
+          <li>{item.name}</li>
         </div>
       ));
     setSearch(temp);
@@ -606,19 +603,18 @@ export const App = () => {
     let temp = Object.entries(chains).map(([key, value]: any) => {
       if (true) {
         return (
-          <div className="">
-            <li
-              onClick={() => {
-                toggleModal2();
-                if (activeNetwork === 1) {
-                  // switchNetwork(key);
-                  setNetwork1(key);
-                } else setNetwork2(key);
-              }}
-              key={key}
-            >
-              {value}
-            </li>
+          <div
+            className=""
+            onClick={() => {
+              toggleModal2();
+              if (activeNetwork === 1) {
+                // switchNetwork(key);
+                setNetwork1(key);
+              } else setNetwork2(key);
+            }}
+            key={key}
+          >
+            <li>{value}</li>
           </div>
         );
       }
@@ -671,6 +667,8 @@ export const App = () => {
   }, [network2]);
 
   useEffect(() => {
+    console.log(network1, "here");
+
     var temp = tokensMeta?.tokens.find(
       (t) =>
         t.blockchain.toLowerCase() === chains[network1] &&
