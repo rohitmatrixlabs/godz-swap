@@ -147,7 +147,7 @@ export const App = () => {
     // console.log(searchTerm);
     toggleModal();
     setLoadingCurrency(false);
-    if (currId == 1) {
+    if (currId === 1) {
       setCurrency1(searchTerm);
     } else {
       setCurrency2(searchTerm);
@@ -167,7 +167,6 @@ export const App = () => {
     // getUserWallet().then((user) => {
     //   setSigner(user);
     // });
-
     const fn = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       var temp = await provider.getSigner().getAddress();
@@ -175,11 +174,9 @@ export const App = () => {
       provider.getNetwork().then((network) => {
         var temp1 = tokensMeta?.blockchains.find((c) => {
           // console.log(c);
-
           return c.chainId === toHex(network.chainId);
         });
         // console.log("gt", tokensMeta?.blockchains);
-
         if (temp1) {
           // console.log(temp1);
           setCurrentChain(temp1);
@@ -323,21 +320,18 @@ export const App = () => {
     //   network1,
     //   toHex(networkId)
     // );
-    if (
-      doExecution &&
-      readyToExeccute &&
-      bestRoute !== undefined &&
-      bestRoute !== null &&
-      network1.chainId === toHex(networkId)
-    ) {
-      setDoExecution(false);
-      // console.log("here we go", networkId, bestRoute);
-      executeRoute(bestRoute);
-    }
+    // if (doExecution && network1.chainId === toHex(networkId) && bestRoute) {
+    //   setDoExecution(false, () => executeRoute(bestRoute));
+    //   // console.log("here we go", networkId, bestRoute);
+    //   //executeRoute(bestRoute);
+    // }
+    // console.log("ghere");
+
     var temp = tokensMeta?.blockchains.find(
       (c) => c.chainId === toHex(networkId)
     );
-    setCurrentChain(temp);
+    // console.log(temp);
+    if (temp) setCurrentChain(temp);
 
     // Time to reload your interface with networks[0]!);
 
@@ -910,6 +904,8 @@ export const App = () => {
     }
   };
 
+  // useEffect(() => {}, [currentChain]);
+
   return (
     <div className="dashboard-root" style={{ width: "100%" }}>
       {loadingMeta && loadingCurrency ? (
@@ -999,7 +995,6 @@ export const App = () => {
                 {roundOff(parseFloat(inputAmount) * currency1.usdPrice, 2) || 0}
                 $
               </div>
-              <div className="font_base wallet">ERC20</div>
             </div>
             <div className="position_setter" onClick={interChange}>
               {!loadingSwap ? (
@@ -1076,7 +1071,6 @@ export const App = () => {
                   % )
                 </span>
               </div>
-              <div className="font_base wallet">ERC20</div>
             </div>
           </div>
           <div className="modal__style box2__container">
@@ -1194,13 +1188,21 @@ export const App = () => {
             <button className="swap_button font_base" onClick={handleConnect}>
               Connect
             </button>
-          ) : (
+          ) : currentChain.name === currency1.blockchain ? (
             <button
               className="swap_button font_base"
               disabled={loadingSwap}
               onClick={handleExecution}
             >
               Swap
+            </button>
+          ) : (
+            <button
+              className="swap_button font_base"
+              disabled={loadingSwap}
+              onClick={() => switchNetwork(network1.chainId)}
+            >
+              Change Network
             </button>
           )}
         </div>
