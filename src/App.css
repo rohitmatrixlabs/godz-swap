@@ -1536,6 +1536,8 @@ body.active-modal {
   height: 30%;
   min-height: 30px;
   width: 42%;
+  overflow: hidden;
+  
 }
 
 @media (max-width: 768px) {
