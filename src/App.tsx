@@ -794,6 +794,7 @@ export const App = () => {
       });
       details.totalTime += item.estimatedTimeInSeconds;
     });
+    details.outputAmount = bestRoute?.result?.outputAmount || "0";
   }, [bestRoute]);
 
   const interChange = () => {
@@ -1013,12 +1014,7 @@ export const App = () => {
                   }}
                 >
                   <div className="amount font_base">
-                    {roundOff(
-                      (parseFloat(currency1.usdPrice) /
-                        parseFloat(currency2.usdPrice)) *
-                        parseFloat(inputAmount),
-                      4
-                    ) || 0}
+                    {roundOff(parseFloat(details.outputAmount), 2) || 0}
                   </div>
 
                   {/* <div className="amount_deduction font_base token">
@@ -1028,7 +1024,20 @@ export const App = () => {
               </div>
               <div className="amount_deduction font_base">
                 $
-                {roundOff(currency1.usdPrice * parseFloat(inputAmount), 4) || 0}{" "}
+                {roundOff(
+                  currency2.usdPrice * parseFloat(details.outputAmount),
+                  2
+                ) || 0}{" "}
+                <span className="downGrade">
+                  (
+                  {roundOff(
+                    (currency2.usdPrice * parseFloat(details.outputAmount) -
+                      currency1.usdPrice * parseFloat(inputAmount)) /
+                      (currency1.usdPrice * parseFloat(inputAmount)),
+                    2
+                  ) || 0}
+                  % )
+                </span>
               </div>
               <div className="font_base wallet">ERC20</div>
             </div>

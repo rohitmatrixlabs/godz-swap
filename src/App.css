@@ -1647,6 +1647,10 @@ body.active-modal {
   overflow-y: auto;
 }
 
+.downGrade {
+  color: red;
+}
+
 .dropDownWrapper {
   background-color: transparent !important;
 }
