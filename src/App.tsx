@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "./components/Dashboard/Dashboard";
 
 import ReactDOM from "react-dom";
@@ -8,6 +8,10 @@ import arrowDown from "./assets/arrowDown.png";
 import zigZag from "./assets/zig-zag.png";
 import SearchBox from "./components/SearchBox/SearchBox";
 import ClipLoader from "react-spinners/ClipLoader";
+import logo from './assets/logo.png'
+import {ReactComponent as Twitter} from './assets/twitter.svg';
+import  {ReactComponent as Telegram} from './assets/telegram.svg';
+import {ReactComponent as Medium} from './assets/medium.svg';
 
 import { ethers, FixedNumber } from "ethers";
 import {
@@ -36,6 +40,7 @@ declare let window: any;
 type WalletAddresses = { blockchain: string; address: string }[];
 
 export const App = () => {
+  const [buttonOpacity, setbuttonOpacity] = useState(0)
   const notyf = new Notyf({
     duration: 3000,
     position: { x: "right", y: "top" },
@@ -54,7 +59,7 @@ export const App = () => {
   };
 
   const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812"; // put your RANGO-API-KEY here
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  // const provider = new ethers.providers.Web3Provider(window.ethereum);
   const [currentChain, setCurrentChain] = useState<any>(0);
   const rangoClient = useMemo(() => new RangoClient(RANGO_API_KEY), []);
   const [wallet, setWallet] = useState<WalletDetail>();
@@ -183,10 +188,11 @@ export const App = () => {
         }
       });
     };
-    fn();
+    if(window.ethereum)
+      fn();
   }, []);
 
-  useEffect(() => {}, [signer]);
+  useEffect(() => {if(signer !== null && signer !== undefined)setbuttonOpacity(1)}, [signer]);
   useEffect(() => {
     setLoadingMeta(true);
     // console.log(currentChain);
@@ -213,7 +219,7 @@ export const App = () => {
 
       setNetwork1(temp3);
       setNetwork2(temp3);
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = ((window.ethereum != null) ? new ethers.providers.Web3Provider(window.ethereum) : ethers.getDefaultProvider('https://neat-greatest-moon.bsc.discover.quiknode.pro/dfad615c4c85e9eb9c817ca44ae3313f093ace51/'));;
       provider.getNetwork().then((network) => {
         var temp1 = meta?.blockchains.find((c) => {
           return c.chainId === toHex(network.chainId);
@@ -309,7 +315,7 @@ export const App = () => {
 
   //   // Time to reload your interface with accounts[0]!
   // });
-
+  if(window.ethereum)
   window.ethereum.on("networkChanged", function (networkId: any) {
     // console.log(
     //   "here i am",
@@ -339,9 +345,15 @@ export const App = () => {
   });
 
   const getUserWallet = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    return await provider.getSigner().getAddress();
+    try{
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      return await provider.getSigner().getAddress();
+    }catch(e){
+      console.log(e);
+      console.log("hello error")
+      return ''
+    }
   };
 
   const swap = async () => {
@@ -500,7 +512,7 @@ export const App = () => {
     setDoExecution(false);
     console.log("here");
 
-    const provider = await new ethers.providers.Web3Provider(
+    const provider = new ethers.providers.Web3Provider(
       window.ethereum as any
     );
     const signer = provider.getSigner();
@@ -862,6 +874,7 @@ export const App = () => {
     setInputAmount(details.availableAmount.toString());
   };
   var text = "Connect";
+  if(window.ethereum)
   window.ethereum.on("connect", (connectInfo: any) => {
     text = "Swap";
   });
@@ -880,8 +893,11 @@ export const App = () => {
       // ];
       // let temp = await rangoClient.getWalletsDetails(w);
     };
-
-    fn();
+    if(window.ethereum)
+      fn();
+    else{
+      alert("Install Wallet in your browser");
+    }
   };
   function toHex(d: any) {
     var i = parseInt(d);
@@ -921,6 +937,10 @@ export const App = () => {
         </>
       ) : (
         <div className="dashboard-root ">
+        <div className="navbar">
+            <img className="nav-logo" src={logo} alt="" />
+            <button className="nav-btn" onClick={()=>{}} style={{opacity: buttonOpacity}}>Wallet balance</button>
+        </div>
           <div className="title">Godzilla Dex Aggregator</div>
           <div className="swap__box">
             <div className="modal__style box1__container">
@@ -976,7 +996,8 @@ export const App = () => {
                     backgroundColor: "transparent",
                     border: "1px solid rgba(255, 255, 255, 0.26)",
                     borderRadius: "10px",
-                    width: "60%",
+                    width: "55%",
+                    marginLeft: "10px"
                   }}
                 >
                   <input
@@ -1040,11 +1061,12 @@ export const App = () => {
                     alignItems: "end",
                     border: "1px solid rgba(255, 255, 255, 0.26)",
                     borderRadius: "10px",
-                    width: "60%",
+                    width: "55%",
+                    marginLeft: "10px"
                   }}
                 >
                   <div className="amount font_base">
-                    {roundOff(parseFloat(details.outputAmount), 2) || 0}
+                    {(roundOff(parseFloat(details.outputAmount), 2) || 0)}
                   </div>
 
                   {/* <div className="amount_deduction font_base token">
@@ -1205,6 +1227,13 @@ export const App = () => {
               Change Network
             </button>
           )}
+          {!(loadingCurrency && loadingMeta) && <div className="footer">
+        <ul className="footer-icons">
+          <li><a href=""><Twitter/></a></li>
+          <li><a href=""><Telegram/></a></li>
+          <li><a href=""><Medium/></a></li>
+        </ul>
+      </div>}
         </div>
       )}
       {modal && (

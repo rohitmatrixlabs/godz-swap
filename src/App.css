@@ -103,7 +103,9 @@ button:hover {
 .error-message {
   color: red;
 }
-
+body{
+  position: relative;
+}
 .app-root {
   height: 100%;
   width: 90%;
@@ -1084,6 +1086,7 @@ button:hover {
   font-weight: 400;
   letter-spacing: 0.06em;
   color: #ffffff;
+  overflow: hidden;
 }
 
 .currency_name {
@@ -1690,4 +1693,43 @@ body.active-modal {
 
 .dropDownList {
   max-height: 100px;
+}
+.nav-logo{
+  width: 50px;
+  aspect-ratio: 1/1;
+}
+.navbar{
+  display: flex;
+  margin-top: 1rem;
+  width: 90%;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-btn{
+  padding: 1em 3em;
+  background-color: #04F0F4;
+  border-radius: 10px;
+  border: none;
+  font-size: 1rem;
+  font-family: MicroSquare;
+  font-weight: 400;
+  opacity: 0;
+}
+.footer{
+  width: 100vw;
+  margin-top: 5rem;
+  background-color: #07142D;
+}
+@media(min-width: 2000px){
+  .footer{
+    position: absolute;
+    bottom: 0;
+  }
+}
+.footer-icons{
+  display: flex;
+  gap: 1rem;
+}
+li{
+  list-style: none;
 }
