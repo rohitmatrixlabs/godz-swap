@@ -1,14 +1,13 @@
 import "./App.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "./components/Dashboard/Dashboard";
-import WalletBalance from "./components/WalletBallance";
 import ReactDOM from "react-dom";
 import symbol from "./assets/icon__1.png";
 import arrowDown from "./assets/arrowDown.png";
 import zigZag from "./assets/zig-zag.png";
 import SearchBox from "./components/SearchBox/SearchBox";
 import ClipLoader from "react-spinners/ClipLoader";
-import logo from './assets/logo.png'
+import logo from './assets/logo.svg';
 import {ReactComponent as Twitter} from './assets/twitter.svg';
 import  {ReactComponent as Telegram} from './assets/telegram.svg';
 import {ReactComponent as Medium} from './assets/medium.svg';
@@ -33,6 +32,7 @@ import {
   prettyAmount,
   sleep,
 } from "./utils";
+import WalletBalance from "./components/WalletBalance";
 var chains = require("./chainMap.json");
 // import { chains } from "./chainMap";
 
@@ -946,6 +946,7 @@ export const App = () => {
             <img className="nav-logo" src={logo} alt="" />
             <button className="nav-btn" onClick={onClickWalletBalance} style={{opacity: buttonOpacity}}>Wallet balance</button>
         </div>
+        {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance}/>}
           <div className="title">Godzilla Dex Aggregator</div>
           <div className="swap__box">
             <div className="modal__style box1__container">
@@ -1232,7 +1233,8 @@ export const App = () => {
               Change Network
             </button>
           )}
-          {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance}/>}
+          {/* {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance}/>} */}
+
           {!(loadingCurrency && loadingMeta) && <div className="footer">
         <ul className="footer-icons">
           <li><a href=""><Twitter/></a></li>

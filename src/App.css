@@ -1695,8 +1695,8 @@ body.active-modal {
   max-height: 100px;
 }
 .nav-logo{
-  width: 50px;
-  aspect-ratio: 1/1;
+  width: 200px;
+  scale: 1.1;
 }
 .navbar{
   display: flex;
