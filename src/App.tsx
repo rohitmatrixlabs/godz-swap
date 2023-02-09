@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "./components/Dashboard/Dashboard";
-
+import WalletBalance from "./components/WalletBallance";
 import ReactDOM from "react-dom";
 import symbol from "./assets/icon__1.png";
 import arrowDown from "./assets/arrowDown.png";
@@ -72,6 +72,7 @@ export const App = () => {
   const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(
     null
   );
+  const [providerAddress, setproviderAddress] = useState<any>();
   let t: SwapFee[] = [];
   let t1: Number[] = [];
   let t2: { type: string; time: Number; image: string }[] = [];
@@ -127,7 +128,7 @@ export const App = () => {
   const [signer, setSigner] = useState<any>();
   const [doExecution, setDoExecution] = useState<boolean>(false);
   const [chainMeta, setChainMeta] = useState<any>();
-
+  const [seeWalletBalance, setSeeWalletBalance] = useState(false);
   const onChange = (event: any) => {
     setValue(event.target.value);
     if (event.target.value === "") {
@@ -145,7 +146,9 @@ export const App = () => {
       setSearch_style2("search-input active");
     }
   };
-
+  function onClickWalletBalance(){
+    setSeeWalletBalance(true)
+  }
   const onSearch = (searchTerm: any) => {
     setValue("");
     setSearch_style("search-input active");
@@ -176,6 +179,7 @@ export const App = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       var temp = await provider.getSigner().getAddress();
       setSigner(temp);
+      setproviderAddress(temp)
       provider.getNetwork().then((network) => {
         var temp1 = tokensMeta?.blockchains.find((c) => {
           // console.log(c);
@@ -239,6 +243,7 @@ export const App = () => {
     if (tokensMeta === undefined || currentChain === undefined) {
       return;
     }
+    console.log("afkjddsagsrgargasd")
     let temp = tokensMeta?.tokens
       .filter((item) => {
         // if (value === "") return true;
@@ -939,7 +944,7 @@ export const App = () => {
         <div className="dashboard-root ">
         <div className="navbar">
             <img className="nav-logo" src={logo} alt="" />
-            <button className="nav-btn" onClick={()=>{}} style={{opacity: buttonOpacity}}>Wallet balance</button>
+            <button className="nav-btn" onClick={onClickWalletBalance} style={{opacity: buttonOpacity}}>Wallet balance</button>
         </div>
           <div className="title">Godzilla Dex Aggregator</div>
           <div className="swap__box">
@@ -1227,6 +1232,7 @@ export const App = () => {
               Change Network
             </button>
           )}
+          {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance}/>}
           {!(loadingCurrency && loadingMeta) && <div className="footer">
         <ul className="footer-icons">
           <li><a href=""><Twitter/></a></li>

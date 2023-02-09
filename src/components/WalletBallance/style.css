@@ -1,0 +1,12 @@
+.position-fixed{
+    position: absolute;
+    top: 50px;
+    right: 50px;
+    background-color: rgba(0, 0, 0, 0.502);
+    width: 30rem;
+}
+.icon-close{
+    position: fixed;
+    top: 55px;
+    right: 55px;
+}
