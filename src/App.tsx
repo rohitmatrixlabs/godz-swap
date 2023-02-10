@@ -946,7 +946,7 @@ export const App = () => {
             <img className="nav-logo" src={logo} alt="" />
             <button className="nav-btn" onClick={onClickWalletBalance} style={{opacity: buttonOpacity}}>Wallet balance</button>
         </div>
-        {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance}/>}
+        {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance} tokensMeta={tokensMeta}/>}
           <div className="title">Godzilla Dex Aggregator</div>
           <div className="swap__box">
             <div className="modal__style box1__container">

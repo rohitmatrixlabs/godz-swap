@@ -14,10 +14,7 @@ export default function WalletBalance(props)
 {
     // Refresh btn
     const [isRotating, setIsRotating] = useState(false);
-    const handleRefreshClick = () => {
-        setIsRotating(true);
-        setTimeout(() => setIsRotating(false), 500); // rotate for 5 milliseconds
-      };
+    
 
 
       const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812";
@@ -34,6 +31,22 @@ export default function WalletBalance(props)
       "AURORA",
       "POLYGON",
   ]
+  const handleRefreshClick = () => {
+    setIsRotating(true);
+    
+    setTimeout(() => setIsRotating(false), 500); // rotate for 5 milliseconds
+  };
+    function findCostInUsd(element){
+        let ret = 0;
+        props.tokensMeta.tokens.filter((item) => {
+            return element.asset.address && item.address === element.asset.address
+        }).map((item) =>{ 
+            ret = item.usdPrice})
+        if(ret){
+            return <div>${(ret*parseFloat(ethers.utils.formatUnits(element.amount.amount, element.amount.decimals))).toFixed(5)}</div>
+        }
+        return <div>Not found</div>
+    }
       const walletConnectCall = async () => {
           var user = props.signerAddress;
           if (user) {
@@ -42,7 +55,6 @@ export default function WalletBalance(props)
               chains.forEach((c) => {
                   w.push({ address: user, blockchain: c })
               })
-              console.log(w)
               let temp = await rangoClient.getWalletsDetails(w);
               setWallets(temp.wallets);
               console.log("wallets", wallets)
@@ -60,7 +72,7 @@ export default function WalletBalance(props)
           return () => {
   
           }
-      }, []);
+      }, [isRotating]);
 
       function comp(){
         console.log("ww",wallets[0].blockChain);
@@ -97,13 +109,13 @@ export default function WalletBalance(props)
 
       function tokens(wallet)
       {
-        console.log("hmmm",wallet);
         if(wallet.balances.length < 1)
         {
             return (
                 <div className='no-token-txt'>No tokens found</div>
             )
         }
+        console.log(wallet, "jay raam jji ki")
         return (
             <>        
                 {
@@ -119,8 +131,10 @@ export default function WalletBalance(props)
                                                 </div>
                                             </div>
                                             <div>
-                                                <div>{e.amount.amount}</div>
-                                                <div>$0.3876</div>
+                                                <div>{parseFloat(ethers.utils.formatUnits(e.amount.amount, e.amount.decimals)).toFixed(5)}</div>
+                                                <div>
+                                                {findCostInUsd(e)}
+                                                </div>
                                             </div>
                                             <div className='swap-icon-wrapper'>
                                                 <img src={swapIcon} alt="swap-icon" />
@@ -153,7 +167,6 @@ export default function WalletBalance(props)
                                 </div>
                             </div>
                         </div>
-                          <div className='wallet-balance'> $ 757.89</div>
                     </div>
                     {loadingMeta ?  <></> : comp()}
                 </nav>)}
