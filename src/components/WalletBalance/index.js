@@ -16,7 +16,15 @@ export default function WalletBalance(props)
     // Refresh btn
     const [isRotating, setIsRotating] = useState(false);
     
-
+    // copy to clipboard
+    const [copySuccess, setCopySuccess] = useState('');
+    const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+      },
+      (err) => console.error('Failed to copy text: ', err)
+    );
+  };
 
       const RANGO_API_KEY = "3d58b20a-11a4-4d6f-9a09-a2807f0f0812";
       const rangoClient = useMemo(() => new RangoClient(RANGO_API_KEY), []);
@@ -114,7 +122,7 @@ export default function WalletBalance(props)
                                     </div>
                                     <div className='wallet-id-options'>
                                         <div className='wallet-id ellipsis'>{e.address}</div>
-                                        <div className='icon-wrapper'>
+                                        <div className='icon-wrapper' onClick={()=>copyToClipboard(e.address)}>
                                             <img className='copy-icon' src={copyIcon} alt="copy-icon"/>
                                         </div>
                                     </div>
