@@ -12,6 +12,7 @@ import { ethers, FixedNumber  } from 'ethers';
 
 export default function WalletBalance(props)
 {
+    console.log(props.tokensMeta);
     // Refresh btn
     const [isRotating, setIsRotating] = useState(false);
     
@@ -41,12 +42,36 @@ export default function WalletBalance(props)
         props.tokensMeta.tokens.filter((item) => {
             return element.asset.address && item.address === element.asset.address
         }).map((item) =>{ 
+            console.log("item ", ret);
             ret = item.usdPrice})
         if(ret){
             return <div>${(ret*parseFloat(ethers.utils.formatUnits(element.amount.amount, element.amount.decimals))).toFixed(5)}</div>
         }
         return <div>Not found</div>
     }
+
+    function findNetworkSymbol(element)
+    {
+        let url = "";
+        // console.log("yes", element)
+        props.tokensMeta.blockchains.filter((item) => {
+            return item.name === element.blockChain;
+        }).map((item) =>{ 
+            url = item.logo})
+        return url;
+    }
+
+    function findTokenSymbol(element)
+    {
+        let url = "";
+        
+        props.tokensMeta.tokens.filter((item) => {
+            return item.blockChain === element.asset.blockChain && item.symbol === element.asset.symbol;
+        }).map((item) =>{ 
+            url = item.image})
+        return url;
+    }
+
       const walletConnectCall = async () => {
           var user = props.signerAddress;
           if (user) {
@@ -84,16 +109,13 @@ export default function WalletBalance(props)
                             <>
                                 <div className='wallet-id-div'>
                                     <div className='wallet-id-desc'>
-                                        <img className="token-img" src={networkIcon} alt="network-icon"/>
+                                        <img className="token-img" src={findNetworkSymbol(e)} alt="network-icon"/>
                                         <div className='wallet-name'>{e.blockChain}</div>
                                     </div>
                                     <div className='wallet-id-options'>
                                         <div className='wallet-id ellipsis'>{e.address}</div>
                                         <div className='icon-wrapper'>
                                             <img className='copy-icon' src={copyIcon} alt="copy-icon"/>
-                                        </div>
-                                        <div className='icon-wrapper'>
-                                            <img className='link-icon' src={linkIcon} alt="link-icon"/>
                                         </div>
                                     </div>
                                 </div>
@@ -124,7 +146,7 @@ export default function WalletBalance(props)
                             <>
                                     <div className='transfer-div'>
                                             <div className='network-div'>
-                                                <img className='token-img' src={tokenImg} alt="token-img"/>
+                                                <img className='token-img' src={findTokenSymbol(e)} alt="token-img"/>
                                                 <div>
                                                     <div className='token-symbol'>{e.asset.symbol}</div>
                                                     <div className='token-blockChain'>{wallet.blockChain}</div>
@@ -137,7 +159,6 @@ export default function WalletBalance(props)
                                                 </div>
                                             </div>
                                             <div className='swap-icon-wrapper'>
-                                                <img src={swapIcon} alt="swap-icon" />
                                             </div>
                                     </div>
                                 <div className='separator'></div>

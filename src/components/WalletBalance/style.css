@@ -191,12 +191,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  cursor: pointer;
 }
 
-.swap-icon-wrapper:hover{
-  background-color: rgba(153, 153, 153, 0.25);
-}
 
 .network-div{
   display: flex;

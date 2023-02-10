@@ -40,7 +40,7 @@ declare let window: any;
 type WalletAddresses = { blockchain: string; address: string }[];
 
 export const App = () => {
-  const [buttonOpacity, setbuttonOpacity] = useState(0)
+  const [buttonDisplay, setbuttonDisplay] = useState("none")
   const notyf = new Notyf({
     duration: 3000,
     position: { x: "right", y: "top" },
@@ -196,7 +196,7 @@ export const App = () => {
       fn();
   }, []);
 
-  useEffect(() => {if(signer !== null && signer !== undefined)setbuttonOpacity(1)}, [signer]);
+  useEffect(() => {if(signer !== null && signer !== undefined)setbuttonDisplay("block")}, [signer]);
   useEffect(() => {
     setLoadingMeta(true);
     // console.log(currentChain);
@@ -944,7 +944,7 @@ export const App = () => {
         <div className="dashboard-root ">
         <div className="navbar">
             <img className="nav-logo" src={logo} alt="" />
-            <button className="nav-btn" onClick={onClickWalletBalance} style={{opacity: buttonOpacity}}>Wallet balance</button>
+            <button className="nav-btn" onClick={onClickWalletBalance} style={{display: buttonDisplay}}>Wallet balance</button>
         </div>
         {seeWalletBalance && <WalletBalance signerAddress={providerAddress} setSeeWallet={setSeeWalletBalance} tokensMeta={tokensMeta}/>}
           <div className="title">Godzilla Dex Aggregator</div>
