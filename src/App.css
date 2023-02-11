@@ -1714,6 +1714,15 @@ body.active-modal {
   font-family: MicroSquare;
   font-weight: 400;
 }
+@media(max-width: 800px){
+  .navbar{
+    width: 100%;
+  }
+  .nav-btn{
+    font-size: 0.7rem;
+    padding: 1em 2em;
+  }
+}
 .footer{
   width: 100vw;
   margin-top: 5rem;

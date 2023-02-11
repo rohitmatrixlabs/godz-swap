@@ -166,8 +166,8 @@ export default function WalletBalance(props)
                                                 {findCostInUsd(e)}
                                                 </div>
                                             </div>
-                                            <div className='swap-icon-wrapper'>
-                                            </div>
+                                            {/* <div className='swap-icon-wrapper'>
+                                            </div> */}
                                     </div>
                                 <div className='separator'></div>
                             </>

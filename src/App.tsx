@@ -1040,7 +1040,7 @@ export const App = () => {
             </div>
             <div className="modal__style box1__container">
               <div className="header__1">
-                <div className="title__1 ">You recieve</div>
+                <div className="title__1 ">You receive</div>
               </div>
               <div className="currency" onClick={handleNetwork__2}>
                 <div className="currency__option">
