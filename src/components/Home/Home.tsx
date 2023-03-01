@@ -803,7 +803,7 @@ export const Home = () => {
         </>
       ) : (
         <div className="dashboard-root ">
-          <div className="title">Godzilla Dex Aggregator</div>
+          <div className="title">GODZinu Dex Aggregator</div>
           <div className="swap__box">
             <div className="modal__style box1__container">
               <div className="header__1">
